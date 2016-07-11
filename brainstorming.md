@@ -41,3 +41,5 @@ Notes from today's brainstorming meeting, in no particular order.
 ## Data questions
   * How can we use average value rating, average location rating, etc. in the data?
   * Only have availability, don't know if this is because people are there or it was taken off of market
+
+## Thoughts
