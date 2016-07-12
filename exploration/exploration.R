@@ -1,5 +1,16 @@
+# Erica Ram
+
 library(ggplot2)
-load("airbnb.RData")
+library(tigris)
+library(dplyr)
+library(leaflet)
+library(sp)
+library(ggmap)
+library(maptools)
+library(broom)
+library(httr)
+library(rgdal)
+load("../airbnb.RData")
 
 # number of listings per neighbourhood colored by neighbourhood group
 ggplot(listings, aes(x = neighbourhood_cleansed, fill = neighbourhood_group_cleansed)) +
@@ -41,3 +52,33 @@ ggplot(listings, aes(x = review_scores_rating, fill = instant_bookable)) +
 ggplot(listings, aes(x = bed_type)) + 
   geom_bar()
 
+# experimenting with the map libraries
+r <- GET('http://data.beta.nyc//dataset/0ff93d2d-90ba-457c-9f7e-39e47bf2ac5f/resource/35dd04fb-81b3-479b-a074-a27a37888ce7/download/d085e2f8d0b54d4590b1e7d1f35594c1pediacitiesnycneighborhoods.geojson')
+nyc_neighborhoods <- readOGR(content(r,'text'), 'OGRGeoJSON', verbose = F)
+nyc_neighborhoods_df <- tidy(nyc_neighborhoods)
+nyc_map <- get_map(location = c(lon = -74.00, lat = 40.71), maptype = "terrain", zoom = 11)
+save(nyc_neighborhoods_df, nyc_map, file = "maps.RData")
+
+load("maps.RData")
+# leaflet map experiment
+points <- data.frame(lat=listings$latitude, lng=listings$longitude)
+points_spdf <- points
+coordinates(points_spdf) <- ~lng + lat
+proj4string(points_spdf) <- proj4string(nyc_neighborhoods)
+matches <- over(points_spdf, nyc_neighborhoods)
+points <- cbind(points, matches)
+leaflet(nyc_neighborhoods) %>%
+  addTiles() %>% 
+  addPolygons(popup = ~neighborhood) %>% 
+  addMarkers(~lng, ~lat, popup = ~neighborhood, data = points) %>%
+  addProviderTiles("CartoDB.Positron") %>%
+  setView(-73.98, 40.75, zoom = 10)
+
+# ggmap experiment
+# plotting locations by lat and long
+avg_price_by_neighbourhood <- group_by(listings, neighbourhood_cleansed) %>% summarize(total_listings = n(),total_price = sum(price)) %>% mutate( avg_price = total_price/total_listings)
+df <- mutate(avg_price_by_neighbourhood, total_listings = NULL, total_price = NULL)
+
+ggmap(nyc_map) + 
+  geom_polygon(data=nyc_neighborhoods_df, aes(x=long, y=lat, group=group), color="blue", fill=NA) +
+  geom_point(data=listings_with_avg_price, aes(x = longitude, y = latitude, color = log(avg_price)))
