@@ -1,5 +1,4 @@
 *.gz
 *.csv
 *.RData
-exploration.R
 *.Rhistory
