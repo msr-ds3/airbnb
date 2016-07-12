@@ -1,9 +1,6 @@
 library(ggplot2)
 
-reviews = read.csv('reviews.csv')
-listings = read.csv('listings.csv')
-calendar = read.csv('calendar.csv')
-neigh = read.csv('neighbourhoods.csv')
+load("../airbnb.RData")
 
 View(d)
 View(calendar)
