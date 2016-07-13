@@ -8,9 +8,9 @@ ggplot(aes(x=price), data=d) + geom_density() + ylim(0,1000) #shows that there i
 
 View(reviews)
 View(listings)
-View(neigh)
+View(neighbourhoods)
 
-  names(listings)
+names(listings)
 
 #average price per neighbourhood
 listings <- mutate(listings, price = as.numeric(gsub("[$,]", "", price)))
@@ -44,8 +44,52 @@ ggplot(aes(x=zipcode, y=total_listings), data=freq_by_zip) + geom_point() + ylim
 # >> certain zipcodes blow up
 
 #what amenity is the most used?
-first <-strsplit(gsub("[{}\"]", "", as.character(listings[,59][1])), "[,\"]") #splits the amenity string into individual words
-first[1]
+cleaned_amenities <- gsub("[{}\"]", "", listings[1, "amenities"])
+cleaned_amenities
+first <-strsplit(cleaned_amenities, "[,]")[[1]] #splits the amenity string into individual words
+first[2]
+length(first)
+View(first)
+
+typeof(first)
+
+one_listings_amenities <-strsplit(gsub("[{}\"]", "", listings[2, "amenities"]), "[,]")[[1]] #amenities for listing number 2, Unclear why, but needs [[1]] to access the vector
+one_listings_amenities
+
+for (i in 1:10){
+  print(sprintf("===========%f", i))
+}
+vec <- "{}"
+vec <- strsplit(gsub("[{}\"]", "", vec), "[,]")[[1]]
+vec
+length(vec)
+vec
+
+total_amenities = c()
+vec <- c()
+listing = 1
+
+for(listnum in 1:nrow(listings)){
+  print(sprintf("============ %f", listnum))
+        
+  one_listings_amenities <-strsplit(gsub("[{}\"]", "", listings[listnum, "amenities"]), "[,]")[[1]] #amenities for listing number #listnum
+  
+  if(length(one_listings_amenities) != 0){ #only continue if amenities are not empty for that listing
+    for(n in 1:length(one_listings_amenities)){
+      print(n)
+      print(one_listings_amenities[[n]])
+      amenity = one_listings_amenities[[n]]
+      if(!amenity %in% total_amenities){
+        total_amenities = c(total_amenities, amenity)
+      }
+    }
+  }
+}
+
+total_amenities
+
+ 
+  
 
 #affect of amenities on price / review score
 
