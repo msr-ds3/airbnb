@@ -21,7 +21,7 @@ amenities_string = ",".join(temp_arr)
 print(amenities_string)
 
 
-for listing in listings[1:20]:
+for listing in listings[1:len(listings)]:
     rownum, id, amenities = listing.split('\t')
     listings_amenities = amenities.replace('{', '').replace('}', '').replace('\\', '').replace('\"', '').strip().split(',') #strip \n and split it by comma and backslash
     #refactor replacements of {, }, \, "

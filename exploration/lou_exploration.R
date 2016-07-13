@@ -70,10 +70,9 @@ amen_bare <- select(listings, id, amenities)
 View(amen_bare)
 write.table(amen_bare, "amenities_and_id.tsv", sep='\t')
 
+true_false_amen = read.csv('table_amenities.csv')
 
-table_amen = read.table('table_amenities.csv')
-
-table_amen[1]
+View(true_false_amen)
 
 #affect of amenities on price / review score
 
