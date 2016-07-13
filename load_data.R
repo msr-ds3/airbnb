@@ -17,4 +17,5 @@ listings <- mutate(listings, price = as.numeric(gsub("[$,]", "", price)),
 
 calendar <- mutate(calendar, price = as.numeric(gsub("[$,]", "", price)))
 
+# save to RData
 save(listings, calendar, neighbourhoods, reviews, file = "airbnb.RData")
