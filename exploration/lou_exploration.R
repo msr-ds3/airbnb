@@ -1,4 +1,5 @@
 library(ggplot2)
+library(dplyr)
 
 load("../airbnb.RData")
 
@@ -44,40 +45,16 @@ ggplot(aes(x=zipcode, y=total_listings), data=freq_by_zip) + geom_point() + ylim
 # >> certain zipcodes blow up
 
 #what amenity is the most used?
-cleaned_amenities <- gsub("[{}\"]", "", listings[1, "amenities"])
-cleaned_amenities
-first <-strsplit(cleaned_amenities, "[,]")[[1]] #splits the amenity string into individual words
-first[2]
-length(first)
-View(first)
-
-typeof(first)
-
-one_listings_amenities <-strsplit(gsub("[{}\"]", "", listings[2, "amenities"]), "[,]")[[1]] #amenities for listing number 2, Unclear why, but needs [[1]] to access the vector
-one_listings_amenities
-
-for (i in 1:10){
-  print(sprintf("===========%f", i))
-}
-vec <- "{}"
-vec <- strsplit(gsub("[{}\"]", "", vec), "[,]")[[1]]
-vec
-length(vec)
-vec
-
 total_amenities = c()
-vec <- c()
-listing = 1
 
-for(listnum in 1:nrow(listings)){
-  print(sprintf("============ %f", listnum))
-        
-  one_listings_amenities <-strsplit(gsub("[{}\"]", "", listings[listnum, "amenities"]), "[,]")[[1]] #amenities for listing number #listnum
+for(i in 1:nrow(listings)){
+  print(sprintf("============ %f", i))
+  one_listings_amenities <-strsplit(gsub("[{}\"]", "", listings[i, "amenities"]), "[,]")[[1]] #amenities for listing number #listnum
   
   if(length(one_listings_amenities) != 0){ #only continue if amenities are not empty for that listing
     for(n in 1:length(one_listings_amenities)){
-      print(n)
-      print(one_listings_amenities[[n]])
+      #print(n)
+      #print(one_listings_amenities[[n]])
       amenity = one_listings_amenities[[n]]
       if(!amenity %in% total_amenities){
         total_amenities = c(total_amenities, amenity)
@@ -86,10 +63,16 @@ for(listnum in 1:nrow(listings)){
   }
 }
 
-total_amenities
+write.table(total_amenities, 'unique_amenities.tsv', sep='\t')
 
- 
-  
+#exporting ID and amenities to TSV file
+amen_bare <- select(listings, id, amenities)
+View(amen_bare)
+write.table(amen_bare, "amenities_and_id.tsv", sep='\t')
+
+true_false_amen = read.csv('table_amenities.csv')
+
+View(true_false_amen)
 
 #affect of amenities on price / review score
 

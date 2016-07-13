@@ -10,6 +10,8 @@ library(maptools)
 library(broom)
 library(httr)
 library(rgdal)
+library(readr)
+library(tidyr)
 load("../airbnb.RData")
 
 # number of listings per neighbourhood colored by neighbourhood group
@@ -56,12 +58,19 @@ ggplot(listings, aes(x = bed_type)) +
 r <- GET('http://data.beta.nyc//dataset/0ff93d2d-90ba-457c-9f7e-39e47bf2ac5f/resource/35dd04fb-81b3-479b-a074-a27a37888ce7/download/d085e2f8d0b54d4590b1e7d1f35594c1pediacitiesnycneighborhoods.geojson')
 nyc_neighborhoods <- readOGR(content(r,'text'), 'OGRGeoJSON', verbose = F)
 nyc_neighborhoods_df <- tidy(nyc_neighborhoods)
-nyc_map <- get_map(location = c(lon = -74.00, lat = 40.71), maptype = "terrain", zoom = 11)
-save(nyc_neighborhoods_df, nyc_map, file = "maps.RData")
+
+a <- GET('https://data.cityofnewyork.us/api/geospatial/mzbd-kucq?method=export&format=GeoJSON')
+areas_of_interest <- readOGR(content(a,'text'), 'OGRGeoJSON', verbose = F)
+areas_of_interest_df <- tidy(areas_of_interest)
+areas_of_interest_df <- mutate(areas_of_interest_df, long = coords.x1, lat = coords.x2, coords.x1 = NULL, coords.x2 = NULL)
+
+nyc_map <- get_map(location = c(lon = -74.00, lat = 40.71), maptype = "terrain", zoom = 10)
+save(nyc_neighborhoods, nyc_neighborhoods_df, areas_of_interest_df, nyc_map, file = "maps.RData")
 
 load("maps.RData")
 # leaflet map experiment
 points <- data.frame(lat=listings$latitude, lng=listings$longitude)
+points <- points[complete.cases(points),]
 points_spdf <- points
 coordinates(points_spdf) <- ~lng + lat
 proj4string(points_spdf) <- proj4string(nyc_neighborhoods)
@@ -76,9 +85,60 @@ leaflet(nyc_neighborhoods) %>%
 
 # ggmap experiment
 # plotting locations by lat and long
-avg_price_by_neighbourhood <- group_by(listings, neighbourhood_cleansed) %>% summarize(total_listings = n(),total_price = sum(price)) %>% mutate( avg_price = total_price/total_listings)
+avg_price_by_neighbourhood <- group_by(listings, neighbourhood_cleansed) %>% summarize(total_listings = n(),total_price = sum(price)) %>% mutate(neighborhood = neighbourhood_cleansed, neighbourhood_cleansed = NULL, avg_price = total_price/total_listings)
 df <- mutate(avg_price_by_neighbourhood, total_listings = NULL, total_price = NULL)
+listings_with_avg_price <- inner_join(df, listings, by = "neighbourhood_cleansed")
+nyc_neighborhoods_with_avg_price <- inner_join(nyc_neighborhoods_df, avg_price_by_neighbourhood, by = "neighborhood", copy = TRUE)
 
 ggmap(nyc_map) + 
   geom_polygon(data=nyc_neighborhoods_df, aes(x=long, y=lat, group=group), color="blue", fill=NA) +
-  geom_point(data=listings_with_avg_price, aes(x = longitude, y = latitude, color = log(avg_price)))
+  geom_point(data=listings_with_avg_price, aes(x = longitude, y = latitude, color = log(avg_price))) + 
+  geom_point(data=areas_of_interest_df, aes(x = long, y = lat), color="red")
+
+
+# experimenting to color neighborhoods by average price with ggmap
+points_by_neighborhood <- listings_with_avg_price %>%
+  mutate(neighborhood = neighbourhood, neighbourhood = NULL) %>%
+  group_by(neighborhood) %>%
+  dplyr::summarize(num_points=n())
+
+df1 <- left_join(points_by_neighborhood, avg_price_by_neighbourhood, by = "neighborhood")
+
+plot_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., df1, by=c("id"="neighborhood")) %>%
+  filter(!is.na(num_points))
+
+manhattan_map <- get_map(location = c(lon = -73.93, lat = 40.75), maptype = "terrain", zoom = 11)
+
+# this plot shows the log number of points (listings) by neighborhood
+ggmap(manhattan_map) + 
+  geom_polygon(data=plot_data, aes(x=long, y=lat, group=group, fill=log(avg_price)), color="gray", alpha=0.75) +
+  scale_fill_gradient(low="blue", high="red")
+  #scale_fill_gradientn(colours = rainbow(10))
+
+# map by number of listings (num)
+ggmap(manhattan_map) + 
+  geom_polygon(data=plot_data, aes(x=long, y=lat, group=group, fill=num_points), color="gray", alpha=0.75) +
+  scale_fill_gradient(low="blue", high="red")
+
+# looking at crime stats
+c <- GET('https://data.cityofnewyork.us/api/geospatial/78dh-3ptz?method=export&format=GeoJSON')
+precincts <- readOGR(content(c,'text'), 'OGRGeoJSON', verbose = F)
+precincts_df <- tidy(precincts)
+
+# map with precincts overlaid in black
+ggmap(manhattan_map) + 
+  geom_polygon(data=plot_data, aes(x=long, y=lat, group=group, fill=num_points), color="gray", alpha=0.75) +
+  scale_fill_gradient(low="blue", high="red") +
+  geom_polygon(data=precincts_df, aes(x=long, y=lat, group=group), color="black", fill=NA)
+
+# crime data
+crime_data <- read_csv("../NYPD_7_Major_Felony_Incident_Map.csv", na='\\N')
+crime_data <- crime_data %>% extract(`Location 1`, c("Latitude", "Longitude"), "\\(([^,]+), ([^)]+)\\)")
+crime_points <- data.frame(lat=as.numeric(crime_data$Latitude), lng=as.numeric(crime_data$Longitude))
+crime_points <- crime_points[complete.cases(crime_points),]
+crime_points_spdf <- crime_points 
+coordinates(crime_points_spdf) <- ~lng + lat 
+proj4string(crime_points_spdf) <- proj4string(nyc_neighborhoods) 
+crime_matches <- over(crime_points_spdf, nyc_neighborhoods) 
+crime_points <- cbind(crime_points, crime_matches)
