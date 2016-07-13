@@ -10,6 +10,8 @@ library(maptools)
 library(broom)
 library(httr)
 library(rgdal)
+library(readr)
+library(tidyr)
 load("../airbnb.RData")
 
 # number of listings per neighbourhood colored by neighbourhood group
@@ -113,3 +115,30 @@ ggmap(manhattan_map) +
   geom_polygon(data=plot_data, aes(x=long, y=lat, group=group, fill=log(avg_price)), color="gray", alpha=0.75) +
   scale_fill_gradient(low="blue", high="red")
   #scale_fill_gradientn(colours = rainbow(10))
+
+# map by number of listings (num)
+ggmap(manhattan_map) + 
+  geom_polygon(data=plot_data, aes(x=long, y=lat, group=group, fill=num_points), color="gray", alpha=0.75) +
+  scale_fill_gradient(low="blue", high="red")
+
+# looking at crime stats
+c <- GET('https://data.cityofnewyork.us/api/geospatial/78dh-3ptz?method=export&format=GeoJSON')
+precincts <- readOGR(content(c,'text'), 'OGRGeoJSON', verbose = F)
+precincts_df <- tidy(precincts)
+
+# map with precincts overlaid in black
+ggmap(manhattan_map) + 
+  geom_polygon(data=plot_data, aes(x=long, y=lat, group=group, fill=num_points), color="gray", alpha=0.75) +
+  scale_fill_gradient(low="blue", high="red") +
+  geom_polygon(data=precincts_df, aes(x=long, y=lat, group=group), color="black", fill=NA)
+
+# crime data
+crime_data <- read_csv("../NYPD_7_Major_Felony_Incident_Map.csv", na='\\N')
+crime_data <- crime_data %>% extract(`Location 1`, c("Latitude", "Longitude"), "\\(([^,]+), ([^)]+)\\)")
+crime_points <- data.frame(lat=as.numeric(crime_data$Latitude), lng=as.numeric(crime_data$Longitude))
+crime_points <- crime_points[complete.cases(crime_points),]
+crime_points_spdf <- crime_points 
+coordinates(crime_points_spdf) <- ~lng + lat 
+proj4string(crime_points_spdf) <- proj4string(nyc_neighborhoods) 
+crime_matches <- over(crime_points_spdf, nyc_neighborhoods) 
+crime_points <- cbind(crime_points, crime_matches)
