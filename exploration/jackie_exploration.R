@@ -136,6 +136,7 @@ View(listings_summary_duplicate)
 #https://www.airbnb.com/rooms/792748
 
 
+
 #available for full year ahead
 listings_yearly <- listings %>% filter(availability_365 == 365)
 listings_booked <- listings %>% filter(availability_365 != 365)
@@ -151,3 +152,22 @@ summary(listings_yearly$review_scores_rating)
   #range 20 to 100 (1039 NAs) mean 90.71
 summary(listings_booked$review_scores_rating)
   #range 20 to 100 (8767 NAs) mean 92.49
+
+#Day 3
+##Morning Meeting
+
+##40.76400 -73.98908
+##40.76178 -73.99049
+#find a review prior to  2016-04-02
+
+
+##after chris helped me, he suggest a better way to sort my listings
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+#only entire apartments with duplicate summaries
+duplicate_summary <- listings %>% filter(summary != "" & summary != "." & room_type =="Entire home/apt") %>% group_by(summary) %>% mutate(summary_count=n()) %>% ungroup() %>% filter(summary_count>1) %>% arrange(host_name)
+View(duplicate_summary)
+
+
+#look at ej's calendar for one listing and compare
+calendar_ej <- calendar %>% filter(listing_id == 9795028 | listing_id == 10641378) %>% filter(available == "t") 
+View(calendar_ej)
