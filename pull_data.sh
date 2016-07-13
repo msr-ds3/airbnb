@@ -13,6 +13,8 @@ wget http://data.insideairbnb.com/united-states/ny/new-york-city/2016-06-02/data
 
 wget http://data.insideairbnb.com/united-states/ny/new-york-city/2016-06-02/data/reviews.csv.gz
 
+wget http://data.insideairbnb.com/united-states/ny/new-york-city/2016-06-02/visualisations/neighbourhoods.csv
+
 for name in *.gz
 do
   gzip -d "$name"
