@@ -15,7 +15,13 @@ with open('amenities_and_id.tsv') as f:
 
 
 grand_result = []
-for listing in listings[1:13]:
+amenities_string = "id," + ",".join(list_of_amenities)
+temp_arr = amenities_string.split(',')
+amenities_string = ",".join(temp_arr)
+print(amenities_string)
+
+
+for listing in listings[1:20]:
     rownum, id, amenities = listing.split('\t')
     listings_amenities = amenities.replace('{', '').replace('}', '').replace('\\', '').replace('\"', '').strip().split(',') #strip \n and split it by comma and backslash
     #refactor replacements of {, }, \, "
@@ -31,10 +37,15 @@ for listing in listings[1:13]:
             true_false_row.append("TRUE")
         else:
             true_false_row.append("FALSE")
+    #print(len(true_false_row))
 
-    grand_result.append(true_false_row)
+    row_string = ",".join(true_false_row)
+    print(row_string)
 
-print(grand_result)
+    #grand_result.append(true_false_row)
+#print("========================== length of list_of_amenitites:")
+#print(len(list_of_amenities))
+#print(grand_result)
 
 
     #print(amenities)
