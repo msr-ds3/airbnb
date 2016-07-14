@@ -71,6 +71,7 @@ load("maps.RData")
 # leaflet map experiment
 points <- data.frame(lat=listings$latitude, lng=listings$longitude)
 points <- points[complete.cases(points),]
+points <- points[1:10000,]
 points_spdf <- points
 coordinates(points_spdf) <- ~lng + lat
 proj4string(points_spdf) <- proj4string(nyc_neighborhoods)
@@ -85,10 +86,14 @@ leaflet(nyc_neighborhoods) %>%
 
 # ggmap experiment
 # plotting locations by lat and long
-avg_price_by_neighbourhood <- group_by(listings, neighbourhood_cleansed) %>% summarize(total_listings = n(),total_price = sum(price)) %>% mutate(neighborhood = neighbourhood_cleansed, neighbourhood_cleansed = NULL, avg_price = total_price/total_listings)
+avg_price_by_neighbourhood <- group_by(listings, neighbourhood_cleansed) %>% 
+  summarize(total_listings = n(),total_price = sum(price)) %>% 
+  mutate(neighborhood = neighbourhood_cleansed, neighbourhood_cleansed = NULL, avg_price = total_price/total_listings)
 df <- mutate(avg_price_by_neighbourhood, total_listings = NULL, total_price = NULL)
-listings_with_avg_price <- inner_join(df, listings, by = "neighbourhood_cleansed")
-nyc_neighborhoods_with_avg_price <- inner_join(nyc_neighborhoods_df, avg_price_by_neighbourhood, by = "neighborhood", copy = TRUE)
+listings <- mutate(listings, neighborhood = neighbourhood_cleansed, neighbourhood_cleansed = NULL)
+listings_with_avg_price <- inner_join(df, listings, by = "neighborhood")
+nyc_neighborhoods_with_avg_price <- inner_join(as.data.frame(nyc_neighborhoods), listings_with_avg_price, by = "neighborhood", copy = TRUE)
+
 
 ggmap(nyc_map) + 
   geom_polygon(data=nyc_neighborhoods_df, aes(x=long, y=lat, group=group), color="blue", fill=NA) +
@@ -132,7 +137,7 @@ ggmap(manhattan_map) +
   scale_fill_gradient(low="blue", high="red") +
   geom_polygon(data=precincts_df, aes(x=long, y=lat, group=group), color="black", fill=NA)
 
-# crime data
+# crime data by neighborhood
 crime_data <- read_csv("../NYPD_7_Major_Felony_Incident_Map.csv", na='\\N')
 crime_data <- crime_data %>% extract(`Location 1`, c("Latitude", "Longitude"), "\\(([^,]+), ([^)]+)\\)")
 crime_points <- data.frame(lat=as.numeric(crime_data$Latitude), lng=as.numeric(crime_data$Longitude))
@@ -142,3 +147,10 @@ coordinates(crime_points_spdf) <- ~lng + lat
 proj4string(crime_points_spdf) <- proj4string(nyc_neighborhoods) 
 crime_matches <- over(crime_points_spdf, nyc_neighborhoods) 
 crime_points <- cbind(crime_points, crime_matches)
+
+df2 <- group_by(crime_points, neighborhood) %>% dplyr::summarize(num_points = n()) %>% left_join(crime_points, ., by = "neighborhood")
+
+ggmap(manhattan_map) + 
+  geom_point(data=df2, aes(x = lng, y = lat, color = num_points)) +
+  scale_color_gradient(low="blue", high="red")
+  

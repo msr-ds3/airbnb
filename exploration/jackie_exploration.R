@@ -136,6 +136,7 @@ View(listings_summary_duplicate)
 #https://www.airbnb.com/rooms/792748
 
 
+
 #available for full year ahead
 listings_yearly <- listings %>% filter(availability_365 == 365)
 listings_booked <- listings %>% filter(availability_365 != 365)
@@ -151,3 +152,48 @@ summary(listings_yearly$review_scores_rating)
   #range 20 to 100 (1039 NAs) mean 90.71
 summary(listings_booked$review_scores_rating)
   #range 20 to 100 (8767 NAs) mean 92.49
+
+#Day 3
+##Morning Meeting
+
+##40.76400 -73.98908
+##40.76178 -73.99049
+#find a review prior to  2016-04-02
+
+
+##after chris helped me, he suggest a better way to sort my listings
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+#only entire apartments with duplicate summaries
+duplicate_summary <- listings %>% filter(summary != "" & summary != "." & room_type =="Entire home/apt") %>% group_by(summary) %>% mutate(summary_count=n()) %>% ungroup() %>% filter(summary_count>1) %>% arrange(host_name)
+View(duplicate_summary)
+
+#to find multilistings 
+multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+nrow(multilistings)
+#1730 multilistings
+summary(multilistings$host_count)
+#Min 2, Max 28, Mean 3.5  
+
+#plot of number of multilistings per borough (separated by number per host)
+
+ggplot(data = multilistings, aes(x = host_count)) + geom_histogram() +facet_wrap(~neighbourhood_group_cleansed)
+
+#create a table with just entire apt/hm
+listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
+
+
+#percentage of multilistings
+nrow(multilistings)/ nrow(listings_entire_apt) * 100
+#9.079%
+
+#find different host id's with same host_
+
+
+
+###To Calculate % of multilistings
+#to create table with just entire apartment and home
+listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
+#to create table of multilistings
+multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+#to find percentage of multilistings
+nrow(multilistings)/ nrow(listings_entire_apt) * 100
