@@ -167,7 +167,33 @@ duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & r
 duplicate_summary <- listings %>% filter(summary != "" & summary != "." & room_type =="Entire home/apt") %>% group_by(summary) %>% mutate(summary_count=n()) %>% ungroup() %>% filter(summary_count>1) %>% arrange(host_name)
 View(duplicate_summary)
 
+#to find multilistings 
+multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+nrow(multilistings)
+#1730 multilistings
+summary(multilistings$host_count)
+#Min 2, Max 28, Mean 3.5  
 
-#look at ej's calendar for one listing and compare
-calendar_ej <- calendar %>% filter(listing_id == 9795028 | listing_id == 10641378) %>% filter(available == "t") 
-View(calendar_ej)
+#plot of number of multilistings per borough (separated by number per host)
+
+ggplot(data = multilistings, aes(x = host_count)) + geom_histogram() +facet_wrap(~neighbourhood_group_cleansed)
+
+#create a table with just entire apt/hm
+listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
+
+
+#percentage of multilistings
+nrow(multilistings)/ nrow(listings_entire_apt) * 100
+#9.079%
+
+#find different host id's with same host_
+
+
+
+###To Calculate % of multilistings
+#to create table with just entire apartment and home
+listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
+#to create table of multilistings
+multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+#to find percentage of multilistings
+nrow(multilistings)/ nrow(listings_entire_apt) * 100
