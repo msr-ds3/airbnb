@@ -186,10 +186,6 @@ listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
 nrow(multilistings)/ nrow(listings_entire_apt) * 100
 #9.079%
 
-#find different host id's with same host_
-
-
-
 ###To Calculate % of multilistings
 #to create table with just entire apartment and home
 listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
@@ -197,3 +193,56 @@ listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
 multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
 #to find percentage of multilistings
 nrow(multilistings)/ nrow(listings_entire_apt) * 100
+
+
+#number of people that have entire apt listed and min days <= 30
+multilistings_less30 <- multilistings %>% filter(minimum_nights <= 30)
+nrow(multilistings_less30) / nrow(multilistings)
+#99.88% of postings are illegal
+
+#number of multilistings by borough
+boro_total_multilistings <- multilistings %>% ungroup() %>% group_by(neighbourhood_group_cleansed) %>% summarize(multilistings_per_borough = n()) 
+boro_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% group_by(neighbourhood_group_cleansed) %>% summarize(multilistings_per_borough_less30 = n())
+multilistings_by_borough <- inner_join(boro_total_multilistings, boro_total_multilistings_less30, by = "neighbourhood_group_cleansed")
+multilistings_by_borough$percentage_multilistings <- (multilistings_by_borough$multilistings_per_borough_less30/multilistings_by_borough$multilistings_per_borough)
+
+#number of multilistings by neighborhood
+neigh_total_multilistings <- multilistings %>% ungroup() %>% group_by(neighbourhood_cleansed) %>% summarize(multilistings_per_neigh = n()) 
+neigh_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% group_by(neighbourhood_cleansed) %>% summarize(multilistings_per_neigh_less30 = n())
+multilistings_by_neigh <- inner_join(neigh_total_multilistings, neigh_total_multilistings_less30, by = "neighbourhood_cleansed")
+multilistings_by_neigh$percentage_multilistings <- (multilistings_by_neigh$multilistings_per_neigh_less30/multilistings_by_neigh$multilistings_per_neigh)
+
+
+
+#number of people that have entire apt listed and min days <= 30
+multilistings_less30 <- multilistings %>% filter(minimum_nights <= 30)
+nrow(multilistings_less30) / nrow(multilistings)
+#99.88% of postings are illegal
+
+
+#matching summaries and matching 
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+View(duplicate_summary_host)
+nrow(duplicate_summary_host)
+#120 
+n_distinct(duplicate_summary_host$host_since)
+#110 distinct start dates
+
+#find matching summaries and host since
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+duplicate_host_date <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% group_by(host_since)%>% mutate(host_count_date=n()) %>% ungroup() %>% filter(host_count_date > 1) %>% group_by(host_id)
+duplicate_host_date <- listings %>% group_by(host_id)
+duplicate_summary_host_date <-  listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)%>% group_by(host_since) %>% mutate(host_since_count = n_distinct(host_since)) %>% filter(host_since_count > 1)
+View(duplicate_summary_host_date)
+
+
+#Wordclouds
+install.packages("wordcloud")
+install.packages("tm")
+library(wordcloud)
+library(tm)
+#wordcloud of listings name
+wordcloud(listings$name)
+wordcloud(listings$summary)
+wordcloud(listings$space)
+wordcloud(listings$description)
