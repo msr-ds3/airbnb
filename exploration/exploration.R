@@ -140,7 +140,7 @@ ggmap(manhattan_map) +
 # crime data by neighborhood
 crime_data <- read_csv("../NYPD_7_Major_Felony_Incident_Map.csv", na='\\N')
 crime_data <- crime_data %>% extract(`Location 1`, c("Latitude", "Longitude"), "\\(([^,]+), ([^)]+)\\)")
-crime_points <- data.frame(lat=as.numeric(crime_data$Latitude), lng=as.numeric(crime_data$Longitude))
+crime_points <- data.frame(lat=Vias.numeric(crime_data$Latitude), lng=as.numeric(crime_data$Longitude))
 crime_points <- crime_points[complete.cases(crime_points),]
 crime_points_spdf <- crime_points 
 coordinates(crime_points_spdf) <- ~lng + lat 
@@ -150,7 +150,20 @@ crime_points <- cbind(crime_points, crime_matches)
 
 df2 <- group_by(crime_points, neighborhood) %>% dplyr::summarize(num_points = n()) %>% left_join(crime_points, ., by = "neighborhood")
 
+# map dot plotted with crime numbers by color -> Kaciny plotted with heatmap
 ggmap(manhattan_map) + 
   geom_point(data=df2, aes(x = lng, y = lat, color = num_points)) +
   scale_color_gradient(low="blue", high="red")
   
+# average reviews by neighborhood
+avg_reviews <- listings[complete.cases(listings),] %>% 
+  group_by(neighbourhood_cleansed) %>%
+  summarize(num_listings=n(), sum_rating = sum(review_scores_rating)) %>%
+  mutate(avg_reviews=sum_rating/num_listings, neighborhood = neighbourhood_cleansed, neighbourhood_cleansed = NULL)
+
+plot_reviews_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., avg_reviews, by=c("id"="neighborhood")) %>%
+  filter(!is.na(avg_reviews))
+
+ggmap(manhattan_map) + 
+  geom_polygon(data=plot_reviews_data, aes(x=long, y=lat, group=group, fill=avg_reviews), color="gray", alpha=0.75)
