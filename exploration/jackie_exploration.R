@@ -246,3 +246,15 @@ wordcloud(listings$name)
 wordcloud(listings$summary)
 wordcloud(listings$space)
 wordcloud(listings$description)
+
+#Comparing November before and after purge
+#Create entire apt listings
+listings1511_entire_apt <- listings1511 %>% filter(room_type == "Entire home/apt")
+listings151120_entire_apt <- listings151120 %>% filter(room_type == "Entire home/apt")
+#Create multi listings
+multilistings1511 <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+multilistings151120 <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+
+#find listings in 1511 not in 151120
+
+
