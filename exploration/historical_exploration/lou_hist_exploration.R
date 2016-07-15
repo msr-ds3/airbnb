@@ -47,20 +47,19 @@ may16 <- percent_multilistings(listings1605)
 june16 <-percent_multilistings(listings1606)
 
 View(listings1511)
+
 # looking at pre and post purge
-prepurge_bare <- listings1511 %>% select(id, host_id, room_type) %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
-View(prepurge_bare)
-nrow(prepurge_bare) #3331
+prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+nrow(prepurge) #3331
 
-postpurge_bare <- listings151120 %>% select(id, host_id, room_type) %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
-View(postpurge_bare)
-nrow(postpurge_bare) #1829
+postpurge <- listings151120%>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+nrow(postpurge) #1829
 
-purged_listings <- anti_join(prepurge_bare, postpurge_bare, by = 'id')
+purged_listings <- anti_join(prepurge, postpurge, by = 'id')
 View(purged_listings)
 
 purged_tf <- c()
-for(i in 1:nrow(prepurge_bare)){
+for(i in 1:nrow(prepurge)){
   if(prepurge_bare[i,]$id %in% purged_listings$id){
     purged_tf <- c(purged_tf, TRUE)
   } else {
@@ -68,13 +67,14 @@ for(i in 1:nrow(prepurge_bare)){
   }
 }
 
-prepurge_bare$purged <- purged_tf
-View(prepurge_bare)
+prepurge$purged <- purged_tf
+View(prepurge)
 
-nrow(prepurge_bare)
-prepurge_bare <- data.frame(prepurge_bare)
-typeof(prepurge_bare)
+nrow(prepurge)
+prepurge_bare <- data.frame(prepurge)
+typeof(prepurge)
 
-df <- prepurge_bare %>% filter(purged == TRUE)
+df <- prepurge %>% filter(purged == TRUE)
 
 View(df)
+
