@@ -13,6 +13,7 @@ library(rgdal)
 library(readr)
 library(tidyr)
 load("../airbnb.RData")
+load("maps.RData")
 
 # number of listings per neighbourhood colored by neighbourhood group
 ggplot(listings, aes(x = neighbourhood_cleansed, fill = neighbourhood_group_cleansed)) +
@@ -65,7 +66,10 @@ areas_of_interest_df <- tidy(areas_of_interest)
 areas_of_interest_df <- mutate(areas_of_interest_df, long = coords.x1, lat = coords.x2, coords.x1 = NULL, coords.x2 = NULL)
 
 nyc_map <- get_map(location = c(lon = -74.00, lat = 40.71), maptype = "terrain", zoom = 10)
-save(nyc_neighborhoods, nyc_neighborhoods_df, areas_of_interest_df, nyc_map, file = "maps.RData")
+
+manhattan_map <- get_map(location = c(lon = -73.93, lat = 40.75), maptype = "terrain", zoom = 11)
+
+save(nyc_neighborhoods, nyc_neighborhoods_df, areas_of_interest_df, nyc_map, manhattan_map, file = "maps.RData")
 
 load("maps.RData")
 # leaflet map experiment
@@ -112,8 +116,6 @@ df1 <- left_join(points_by_neighborhood, avg_price_by_neighbourhood, by = "neigh
 plot_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
   left_join(., df1, by=c("id"="neighborhood")) %>%
   filter(!is.na(num_points))
-
-manhattan_map <- get_map(location = c(lon = -73.93, lat = 40.75), maptype = "terrain", zoom = 11)
 
 # this plot shows the log number of points (listings) by neighborhood
 ggmap(manhattan_map) + 
@@ -167,3 +169,36 @@ plot_reviews_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
 
 ggmap(manhattan_map) + 
   geom_polygon(data=plot_reviews_data, aes(x=long, y=lat, group=group, fill=avg_reviews), color="gray", alpha=0.75)
+
+# median asking rent by neighborhood
+df <- read_csv("../rental_inventory_time_series_prices_All_Types_Any_Bedrooms.csv")
+names(df)[names(df)=="2016-04-01"] <- "median_asking"
+names(df)[names(df)=="Area"] <- "neighborhood"
+median_neighborhood_rent <- select(df, neighborhood, Boro, AreaType, median_asking) %>% 
+  filter(AreaType == "Neighborhood")
+median_neighborhood_rent <- median_neighborhood_rent[complete.cases(median_neighborhood_rent),]
+median_neighborhood_rent[92,1] = "St. George"
+
+plot_rent_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., median_neighborhood_rent, by=c("id"="neighborhood")) #%>%filter(!is.na(median_asking))
+
+ggmap(nyc_map) + 
+  geom_polygon(data=plot_rent_data, aes(x=long, y=lat, group=group, fill=log(median_asking)), color="gray") +
+  scale_fill_gradient(low="blue", high="red")
+
+
+# median asking rent by neighborhood for Sept 2015 (less NAs)
+names(df)[names(df)=="2015-09-01"] <- "median_asking"
+names(df)[names(df)=="Area"] <- "neighborhood"
+median_neighborhood_rent <- select(df, neighborhood, Boro, AreaType, median_asking) %>% 
+  filter(AreaType == "Neighborhood")
+median_neighborhood_rent <- median_neighborhood_rent[complete.cases(median_neighborhood_rent),]
+median_neighborhood_rent[92,1] = "St. George"
+
+plot_rent_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., median_neighborhood_rent, by=c("id"="neighborhood")) #%>%filter(!is.na(median_asking))
+
+ggmap(nyc_map) + 
+  geom_polygon(data=plot_rent_data, aes(x=long, y=lat, group=group, fill=log(median_asking)), color="gray") +
+  scale_fill_gradient(low="blue", high="red") +
+  ggtitle("Median Asking Rent by Neighborhood")
