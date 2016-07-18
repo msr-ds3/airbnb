@@ -47,6 +47,7 @@ percent_of_multilistings <- c(september15, october15, november15, november_late1
 df_multilistings <- data.frame(dates, percent_of_multilistings)
 View(df_multilistings)
 
+###### Murray Cox graph replicated!!
 ggplot(aes(dates, percent_of_multilistings), data=df_multilistings) + geom_point() + geom_line() + scale_y_continuous(limits=c(0,20)) + xlab("Month") + ylab("% of Multi-listings") + scale_x_date(breaks=date_breaks("months"), labels=date_format("%b"))
 
 View(listings1511)
