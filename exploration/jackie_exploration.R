@@ -249,12 +249,72 @@ wordcloud(listings$description)
 
 #Comparing November before and after purge
 #Create entire apt listings
-listings1511_entire_apt <- listings1511 %>% filter(room_type == "Entire home/apt")
-listings151120_entire_apt <- listings151120 %>% filter(room_type == "Entire home/apt")
+prepurge_entire_apt <- listings1511 %>% filter(room_type == "Entire home/apt")
+postpurge_entire_apt <- listings151120 %>% filter(room_type == "Entire home/apt")
 #Create multi listings
-multilistings1511 <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
-multilistings151120 <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
 
-#find listings in 1511 not in 151120
+#find listings in pre not in post
+prepurge %>% filter(id != postpurge_id) %>% View
+purge <- anti_join(prepurge, postpurge, by = "id")
+  #1831
+
+#making sure this is correct
+length(!intersect(prepurge$id, postpurge$id))
+1500+1831
+#equal to nrow(prepurge) = 3331
+
+
+
+
+
+
+#fix prices for listings
+listings1511 <- mutate(listings1511, price = as.numeric(gsub("[$,]", "", price)), 
+                   weekly_price = as.numeric(gsub("[$,]", "", weekly_price)),
+                   monthly_price = as.numeric(gsub("[$,]", "", monthly_price)),
+                   security_deposit = as.numeric(gsub("[$,]", "", security_deposit)),
+                   cleaning_fee = as.numeric(gsub("[$,]", "", cleaning_fee)),
+                   extra_people = as.numeric(gsub("[$,]", "", extra_people)))
+listings151120 <- mutate(listings151120, price = as.numeric(gsub("[$,]", "", price)), 
+                   weekly_price = as.numeric(gsub("[$,]", "", weekly_price)),
+                   monthly_price = as.numeric(gsub("[$,]", "", monthly_price)),
+                   security_deposit = as.numeric(gsub("[$,]", "", security_deposit)),
+                   cleaning_fee = as.numeric(gsub("[$,]", "", cleaning_fee)),
+                   extra_people = as.numeric(gsub("[$,]", "", extra_people)))
+
+#if statement: to find if the id was purged or not
+# looking at pre and post purge
+
+prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+View(prepurge)
+nrow(prepurge) #3331
+
+postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+View(postpurge)
+nrow(postpurge) #1829
+
+purged_listings <- anti_join(prepurge, postpurge, by = 'id')
+View(purged_listings)
+
+purged_tf <- c()
+for(i in 1:nrow(prepurge)){
+  if(prepurge[i,]$id %in% purged_listings$id){
+    purged_tf <- c(purged_tf, TRUE)
+  } else {
+    purged_tf <- c(purged_tf, FALSE)
+  }
+}
+
+prepurge$purged <- purged_tf
+View(prepurge)
+
+nrow(prepurge)
+prepurge <- data.frame(prepurge)
+
+summary(purged_listings)
+
+
 
 
