@@ -48,7 +48,12 @@ df_multilistings <- data.frame(dates, percent_of_multilistings)
 View(df_multilistings)
 
 ###### Murray Cox graph replicated!!
-ggplot(aes(dates, percent_of_multilistings), data=df_multilistings) + geom_point() + geom_line() + scale_y_continuous(limits=c(0,20)) + xlab("Month") + ylab("% of Multi-listings") + scale_x_date(breaks=date_breaks("months"), labels=date_format("%b"))
+ggplot(aes(dates, percent_of_multilistings), data=df_multilistings) + 
+  geom_point(color="blue") + geom_line(color="blue") + 
+  scale_x_date(breaks=date_breaks("months"), labels=date_format("%b")) +
+  scale_y_continuous(limits=c(0,20)) + 
+  xlab("Month") + 
+  ylab("% of Multi-listings") 
 
 View(listings1511)
 # looking at pre and post purge
