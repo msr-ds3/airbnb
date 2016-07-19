@@ -13,6 +13,7 @@ library(rgdal)
 library(readr)
 library(tidyr)
 load("../airbnb.RData")
+load("maps.RData")
 
 # number of listings per neighbourhood colored by neighbourhood group
 ggplot(listings, aes(x = neighbourhood_cleansed, fill = neighbourhood_group_cleansed)) +
@@ -65,7 +66,10 @@ areas_of_interest_df <- tidy(areas_of_interest)
 areas_of_interest_df <- mutate(areas_of_interest_df, long = coords.x1, lat = coords.x2, coords.x1 = NULL, coords.x2 = NULL)
 
 nyc_map <- get_map(location = c(lon = -74.00, lat = 40.71), maptype = "terrain", zoom = 10)
-save(nyc_neighborhoods, nyc_neighborhoods_df, areas_of_interest_df, nyc_map, file = "maps.RData")
+
+manhattan_map <- get_map(location = c(lon = -73.93, lat = 40.75), maptype = "terrain", zoom = 11)
+
+save(nyc_neighborhoods, nyc_neighborhoods_df, areas_of_interest_df, nyc_map, manhattan_map, file = "maps.RData")
 
 load("maps.RData")
 # leaflet map experiment
@@ -113,8 +117,6 @@ plot_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
   left_join(., df1, by=c("id"="neighborhood")) %>%
   filter(!is.na(num_points))
 
-manhattan_map <- get_map(location = c(lon = -73.93, lat = 40.75), maptype = "terrain", zoom = 11)
-
 # this plot shows the log number of points (listings) by neighborhood
 ggmap(manhattan_map) + 
   geom_polygon(data=plot_data, aes(x=long, y=lat, group=group, fill=log(avg_price)), color="gray", alpha=0.75) +
@@ -140,7 +142,7 @@ ggmap(manhattan_map) +
 # crime data by neighborhood
 crime_data <- read_csv("../NYPD_7_Major_Felony_Incident_Map.csv", na='\\N')
 crime_data <- crime_data %>% extract(`Location 1`, c("Latitude", "Longitude"), "\\(([^,]+), ([^)]+)\\)")
-crime_points <- data.frame(lat=as.numeric(crime_data$Latitude), lng=as.numeric(crime_data$Longitude))
+crime_points <- data.frame(lat=Vias.numeric(crime_data$Latitude), lng=as.numeric(crime_data$Longitude))
 crime_points <- crime_points[complete.cases(crime_points),]
 crime_points_spdf <- crime_points 
 coordinates(crime_points_spdf) <- ~lng + lat 
@@ -150,7 +152,120 @@ crime_points <- cbind(crime_points, crime_matches)
 
 df2 <- group_by(crime_points, neighborhood) %>% dplyr::summarize(num_points = n()) %>% left_join(crime_points, ., by = "neighborhood")
 
+# map dot plotted with crime numbers by color -> Kaciny plotted with heatmap
 ggmap(manhattan_map) + 
   geom_point(data=df2, aes(x = lng, y = lat, color = num_points)) +
   scale_color_gradient(low="blue", high="red")
   
+# average reviews by neighborhood
+avg_reviews <- listings[complete.cases(listings),] %>% 
+  group_by(neighbourhood_cleansed) %>%
+  summarize(num_listings=n(), sum_rating = sum(review_scores_rating)) %>%
+  mutate(avg_reviews=sum_rating/num_listings, neighborhood = neighbourhood_cleansed, neighbourhood_cleansed = NULL)
+
+plot_reviews_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., avg_reviews, by=c("id"="neighborhood")) %>%
+  filter(!is.na(avg_reviews))
+
+ggmap(manhattan_map) + 
+  geom_polygon(data=plot_reviews_data, aes(x=long, y=lat, group=group, fill=avg_reviews), color="gray", alpha=0.75)
+
+# median asking rent by neighborhood
+df <- read_csv("../rental_inventory_time_series_prices_All_Types_Any_Bedrooms.csv")
+names(df)[names(df)=="2016-04-01"] <- "median_asking"
+names(df)[names(df)=="Area"] <- "neighborhood"
+median_neighborhood_rent <- select(df, neighborhood, Boro, AreaType, median_asking) %>% 
+  filter(AreaType == "Neighborhood")
+median_neighborhood_rent <- median_neighborhood_rent[complete.cases(median_neighborhood_rent),]
+median_neighborhood_rent[92,1] = "St. George"
+
+plot_rent_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., median_neighborhood_rent, by=c("id"="neighborhood")) #%>%filter(!is.na(median_asking))
+
+ggmap(nyc_map) + 
+  geom_polygon(data=plot_rent_data, aes(x=long, y=lat, group=group, fill=log(median_asking)), color="gray") +
+  scale_fill_gradient(low="blue", high="red")
+
+
+# median asking rent by neighborhood for Sept 2015 (less NAs)
+names(df)[names(df)=="2015-09-01"] <- "median_asking"
+names(df)[names(df)=="Area"] <- "neighborhood"
+median_neighborhood_rent <- select(df, neighborhood, Boro, AreaType, median_asking) %>% 
+  filter(AreaType == "Neighborhood")
+median_neighborhood_rent <- median_neighborhood_rent[complete.cases(median_neighborhood_rent),]
+median_neighborhood_rent[92,1] = "St. George"
+
+plot_rent_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., median_neighborhood_rent, by=c("id"="neighborhood")) %>%
+  filter(!is.na(median_asking))
+
+ggmap(nyc_map) + 
+  geom_polygon(data=plot_rent_data, aes(x=long, y=lat, group=group, fill=log(median_asking)), color="gray") +
+  scale_fill_gradient(low="blue", high="red") +
+  ggtitle("Median Asking Rent by Neighborhood")
+
+# average entire apt/house airbnb by neighborhood
+entire_with_price <- filter(listings, room_type == "Entire home/apt") %>%
+  select(id, price, latitude, longitude, neighbourhood_cleansed) %>%
+  mutate(neighborhood = neighbourhood_cleansed, neighbourhood_cleansed = NULL) %>%
+  group_by(neighborhood) %>%
+  summarize(num_listings = n(), total_price = sum(price), median_price = median(price)) %>%
+  mutate(avg_price = total_price/num_listings)
+
+plot_entire_cost_data <- tidy(nyc_neighborhoods, region="neighborhood") %>%
+  left_join(., entire_with_price, by=c("id"="neighborhood")) %>%
+  filter(!is.na(avg_price))
+
+ggmap(nyc_map) + 
+  geom_polygon(data=plot_entire_cost_data, aes(x=long, y=lat, group=group, fill=log(avg_price)), color="gray") +
+  scale_fill_gradient(low="blue", high="red") +
+  ggtitle("Median Asking Airbnb for Entire House/Apt by Neighborhood")
+
+# median asking rent vs average airbnb
+plot_rent_data_adjusted <- mutate(plot_rent_data, daily_adjusted = median_asking/28)
+rent_vs_airbnb <- full_join(plot_rent_data_adjusted, plot_entire_cost_data, by = "id") %>%
+  filter(!is.na(median_price), !is.na(daily_adjusted), !is.na(avg_price))
+
+ggplot(rent_vs_airbnb, aes(x = avg_price, y = daily_adjusted)) + 
+  geom_point()
+
+# plotting median airbnb price vs daily adjusted rent
+ggplot(rent_vs_airbnb, aes(x = median_price, y = daily_adjusted)) + 
+  geom_point() +
+  scale_x_continuous(limits=c(0, 300)) +
+  scale_y_continuous(limits=c(0, 300))
+
+# plot rent month to month
+complete_months <- df[complete.cases(df),]
+complete_months_neighborhoods <- filter(complete_months, AreaType == "Neighborhood")
+names(complete_months_neighborhoods) <- c("neighborhood", "boro", "area_type", "March_2009", "April_2009",
+                                          "May_2009", "June_2009", "July_2009", "August_2009", "September_2009",
+                                          "October_2009", "November_2009", "December_2009", "January_2010",
+                                          "February_2010", "March_2010", "April_2010", "May_2010", "June_2010",
+                                          "July_2010", "August_2010", "September_2010", "October_2010", "November_2010",
+                                          "December_2010", "January_2011", "February_2011", "March_2011", "April_2011",
+                                          "May_2011", "June_2011", "July_2011", "August_2011", "September_2011",
+                                          "October_2011", "November_2011", "December_2011", "January_2012", "February_2012",
+                                          "March_2012", "April_2012", "May_2012", "June_2012", "July_2012", "August_2012",
+                                          "September_2012", "October_2012", "November_2012", "December_2012", "January_2013",
+                                          "February_2013", "March_2013", "April_2013", "May_2013", "June_2013", "July_2013",
+                                          "August_2013", "September_2013", "October_2013", "November_2013", "December_2013",
+                                          "January_2014", "February_2014", "March_2014", "April_2014", "May_2014",
+                                          "June_2014", "July_2014", "August_2014", "September_2014", "October_2014",
+                                          "November_2014", "December_2014", "January_2015", "February_2015", "March_2015",
+                                          "April_2015", "May_2015", "June_2015", "July_2015", "August_2015", "September_2015",
+                                          "October_2015", "November_2015", "December_2015", "January_2016", "February_2016",
+                                          "March_2016", "April_2016")
+complete_months_neighborhoods <- mutate(complete_months_neighborhoods, boro = NULL, area_type = NULL)
+complete_months_neighborhoods <- t(complete_months_neighborhoods)
+neighborhoods <- complete_months_neighborhoods[1,]
+colnames(complete_months_neighborhoods) <- neighborhoods
+complete_months_neighborhoods <- as.data.frame(complete_months_neighborhoods[-1,], row.names = NULL)
+complete_months_neighborhoods <- mutate(complete_months_neighborhoods, month = as.factor(rownames(complete_months_neighborhoods)))
+
+# trying Amit's way
+complete_months <- df[complete.cases(df),]
+df2 <- filter(complete_months, AreaType == "Neighborhood")
+df2 <- mutate(df2, Boro = NULL, AreaType = NULL)
+df2 <- melt(df2, id.vars = c("Area"))
+ggplot(df2, aes(x = as.Date(variable), y = value, group = Area, color = Area)) + geom_line()

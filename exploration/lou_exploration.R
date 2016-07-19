@@ -65,16 +65,24 @@ for(i in 1:nrow(listings)){
 
 write.table(total_amenities, 'unique_amenities.tsv', sep='\t')
 
-#exporting ID and amenities to TSV file
+#exporting ID and amenities to CSV file
 amen_bare <- select(listings, id, amenities)
 View(amen_bare)
 write.table(amen_bare, "amenities_and_id.tsv", sep='\t')
 
 true_false_amen = read.csv('table_amenities.csv')
-
 View(true_false_amen)
 
 #affect of amenities on price / review score
+true_false_amen<-mutate(true_false_amen, price = basic$price)
+true_false_amen <- true_false_amen[, c(1, 2, 45, 3, 4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44)]
+View(true_false_amen)
+
+lm.fit1 <- lm(price ~ ., data = true_false_amen)
+summary(lm.fit1)
+
+lm.fit2 <- lm(price ~ TV + Wireless.Internet + Air.Conditioning + Free.Parking.on.Premises + Family.Kid.Friendly + Smoke.Detector + Essentials + Cable.TV + Fire.Extinguisher + Indoor.Fireplace + Breakfast + Lock.on.Bedroom.Door + Wheelchair.Accessible + Suitable.for.Events + Smoking.Allowed + Doorman, data=true_false_amen)
+summary(lm.fit2)
 
 #price based on host name (i.e. gender)
 

@@ -186,10 +186,6 @@ listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
 nrow(multilistings)/ nrow(listings_entire_apt) * 100
 #9.079%
 
-#find different host id's with same host_
-
-
-
 ###To Calculate % of multilistings
 #to create table with just entire apartment and home
 listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
@@ -197,3 +193,128 @@ listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
 multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
 #to find percentage of multilistings
 nrow(multilistings)/ nrow(listings_entire_apt) * 100
+
+
+#number of people that have entire apt listed and min days <= 30
+multilistings_less30 <- multilistings %>% filter(minimum_nights <= 30)
+nrow(multilistings_less30) / nrow(multilistings)
+#99.88% of postings are illegal
+
+#number of multilistings by borough
+boro_total_multilistings <- multilistings %>% ungroup() %>% group_by(neighbourhood_group_cleansed) %>% summarize(multilistings_per_borough = n()) 
+boro_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% group_by(neighbourhood_group_cleansed) %>% summarize(multilistings_per_borough_less30 = n())
+multilistings_by_borough <- inner_join(boro_total_multilistings, boro_total_multilistings_less30, by = "neighbourhood_group_cleansed")
+multilistings_by_borough$percentage_multilistings <- (multilistings_by_borough$multilistings_per_borough_less30/multilistings_by_borough$multilistings_per_borough)
+
+#number of multilistings by neighborhood
+neigh_total_multilistings <- multilistings %>% ungroup() %>% group_by(neighbourhood_cleansed) %>% summarize(multilistings_per_neigh = n()) 
+neigh_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% group_by(neighbourhood_cleansed) %>% summarize(multilistings_per_neigh_less30 = n())
+multilistings_by_neigh <- inner_join(neigh_total_multilistings, neigh_total_multilistings_less30, by = "neighbourhood_cleansed")
+multilistings_by_neigh$percentage_multilistings <- (multilistings_by_neigh$multilistings_per_neigh_less30/multilistings_by_neigh$multilistings_per_neigh)
+
+
+
+#number of people that have entire apt listed and min days <= 30
+multilistings_less30 <- multilistings %>% filter(minimum_nights <= 30)
+nrow(multilistings_less30) / nrow(multilistings)
+#99.88% of postings are illegal
+
+
+#matching summaries and matching 
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+View(duplicate_summary_host)
+nrow(duplicate_summary_host)
+#120 
+n_distinct(duplicate_summary_host$host_since)
+#110 distinct start dates
+
+#find matching summaries and host since
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+duplicate_host_date <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% group_by(host_since)%>% mutate(host_count_date=n()) %>% ungroup() %>% filter(host_count_date > 1) %>% group_by(host_id)
+duplicate_host_date <- listings %>% group_by(host_id)
+duplicate_summary_host_date <-  listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)%>% group_by(host_since) %>% mutate(host_since_count = n_distinct(host_since)) %>% filter(host_since_count > 1)
+View(duplicate_summary_host_date)
+
+
+#Wordclouds
+install.packages("wordcloud")
+install.packages("tm")
+library(wordcloud)
+library(tm)
+#wordcloud of listings name
+wordcloud(listings$name)
+wordcloud(listings$summary)
+wordcloud(listings$space)
+wordcloud(listings$description)
+
+#Comparing November before and after purge
+#Create entire apt listings
+prepurge_entire_apt <- listings1511 %>% filter(room_type == "Entire home/apt")
+postpurge_entire_apt <- listings151120 %>% filter(room_type == "Entire home/apt")
+#Create multi listings
+prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+
+#find listings in pre not in post
+prepurge %>% filter(id != postpurge_id) %>% View
+purge <- anti_join(prepurge, postpurge, by = "id")
+  #1831
+
+#making sure this is correct
+length(!intersect(prepurge$id, postpurge$id))
+1500+1831
+#equal to nrow(prepurge) = 3331
+
+
+
+
+
+
+#fix prices for listings
+listings1511 <- mutate(listings1511, price = as.numeric(gsub("[$,]", "", price)), 
+                   weekly_price = as.numeric(gsub("[$,]", "", weekly_price)),
+                   monthly_price = as.numeric(gsub("[$,]", "", monthly_price)),
+                   security_deposit = as.numeric(gsub("[$,]", "", security_deposit)),
+                   cleaning_fee = as.numeric(gsub("[$,]", "", cleaning_fee)),
+                   extra_people = as.numeric(gsub("[$,]", "", extra_people)))
+listings151120 <- mutate(listings151120, price = as.numeric(gsub("[$,]", "", price)), 
+                   weekly_price = as.numeric(gsub("[$,]", "", weekly_price)),
+                   monthly_price = as.numeric(gsub("[$,]", "", monthly_price)),
+                   security_deposit = as.numeric(gsub("[$,]", "", security_deposit)),
+                   cleaning_fee = as.numeric(gsub("[$,]", "", cleaning_fee)),
+                   extra_people = as.numeric(gsub("[$,]", "", extra_people)))
+
+#if statement: to find if the id was purged or not
+# looking at pre and post purge
+
+prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+View(prepurge)
+nrow(prepurge) #3331
+
+postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+View(postpurge)
+nrow(postpurge) #1829
+
+purged_listings <- anti_join(prepurge, postpurge, by = 'id')
+View(purged_listings)
+
+purged_tf <- c()
+for(i in 1:nrow(prepurge)){
+  if(prepurge[i,]$id %in% purged_listings$id){
+    purged_tf <- c(purged_tf, TRUE)
+  } else {
+    purged_tf <- c(purged_tf, FALSE)
+  }
+}
+
+prepurge$purged <- purged_tf
+View(prepurge)
+
+nrow(prepurge)
+prepurge <- data.frame(prepurge)
+
+summary(purged_listings)
+
+
+
+
