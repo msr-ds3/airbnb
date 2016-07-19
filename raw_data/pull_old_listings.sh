@@ -1,7 +1,7 @@
 #!/bin/bash
 # 
 # description:
-#   fetches airbnb listings data from insideairbnb.com from September 2015 to June 2016
+#   fetches airbnb listings data from insideairbnb.com from January 2015 to June 2016
 #
 # usage: ./pull_old_listings.sh
 

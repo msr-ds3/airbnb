@@ -266,6 +266,17 @@ complete_months_neighborhoods <- mutate(complete_months_neighborhoods, month = a
 # trying Amit's way
 complete_months <- df[complete.cases(df),]
 df2 <- filter(complete_months, AreaType == "Neighborhood")
-df2 <- mutate(df2, Boro = NULL, AreaType = NULL)
-df2 <- melt(df2, id.vars = c("Area"))
-ggplot(df2, aes(x = as.Date(variable), y = value, group = Area, color = Area)) + geom_line()
+df2 <- mutate(df2, AreaType = NULL)
+df2 <- melt(df2, id.vars = c("Area", "Boro"))
+
+# graphed over one year
+ggplot(df2, aes(x = as.Date(variable), y = value, group = Area, color = Area)) + 
+  geom_line() +
+  scale_x_date(limits = c(as.Date("2015-01-01"), as.Date("2015-12-01"))) + 
+  facet_wrap(~ Area)
+
+# whole set
+ggplot(df2, aes(x = as.Date(variable), y = value, group = Area, color = Area)) + 
+  geom_line() +
+  scale_x_date(limits = c(as.Date("2009-03-01"), as.Date("2016-04-01"))) + 
+  facet_wrap(~ Area)
