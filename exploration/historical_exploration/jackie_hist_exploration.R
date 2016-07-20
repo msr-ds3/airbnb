@@ -217,4 +217,3 @@ out=glmnet(prepurge_matrix, purge_matrix, alpha = 1)
 lasso_coef= predict(out, type = "coefficients", s=bestlam)
 lasso_coef
 
-

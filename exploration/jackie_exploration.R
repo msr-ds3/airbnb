@@ -10,7 +10,8 @@ listings <- mutate(listings, price = as.numeric(gsub("[$,]", "", price)))
 
 #Ungrouped plots
 #looking at review scores rating
-ggplot(data = listings, aes(x = review_scores_rating)) + geom_histogram() + facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings, aes(x = review_scores_rating)) + geom_histogram() +
+  facet_wrap(~neighbourhood_group_cleansed)
 summary(listings$review_scores_rating)
   #Mean = 92.41
 #review scores accuracy
@@ -54,27 +55,38 @@ number_per_borough <- listings_by_borough %>% summarize(total = n())
 summary(number_per_borough$total)
 #Min 190, Max 18160
 
-ggplot(data = listings_by_borough, aes(x = price, y = minimum_nights)) + geom_point()
+ggplot(data = listings_by_borough, aes(x = price, y = minimum_nights)) + 
+  geom_point()
 #doesnt really seem to be a connection
-ggplot(data = listings_by_borough, aes(x = price, y = minimum_nights)) + geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings_by_borough, aes(x = price, y = minimum_nights)) + 
+  geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
   #Manhattan had most variability
-ggplot(data = listings_by_borough, aes(x = price, y = accommodates)) + geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
-ggplot(data = listings_by_borough, aes(x = price, y = bedrooms)) + geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
-ggplot(data = listings_by_borough, aes(x = price, y = bathrooms)) + geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings_by_borough, aes(x = price, y = accommodates)) + 
+  geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings_by_borough, aes(x = price, y = bedrooms)) + 
+  geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings_by_borough, aes(x = price, y = bathrooms)) + 
+  geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
 
-ggplot(data = listings, aes(x = price)) + geom_histogram()+ facet_wrap(~neighbourhood_group_cleansed)
-ggplot(data = listings, aes(x = accommodates, y = price)) + geom_point() + facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings, aes(x = price)) + geom_histogram()+ 
+  facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings, aes(x = accommodates, y = price)) + geom_point() + 
+  facet_wrap(~neighbourhood_group_cleansed)
 #Doesn't seem to be a correlation between # accomodates and price
-ggplot(data = listings, aes(x = review_scores_rating, y = price)) + geom_point() + facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings, aes(x = review_scores_rating, y = price)) + 
+  geom_point() + facet_wrap(~neighbourhood_group_cleansed)
 
 
 
 #separate by room type
 
 listings_by_room_type <- listings %>% group_by(room_type)
-ggplot(data = listings_by_room_type, aes(x = price, y = review_scores_rating)) + geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
-ggplot(data = listings_by_room_type, aes(x = price, y = review_scores_rating)) + geom_point()+ facet_wrap(~room_type)
-ggplot(data = listings_by_room_type, aes(x = review_scores_rating)) + geom_histogram()+ facet_wrap(~host_identity_verified)
+ggplot(data = listings_by_room_type, aes(x = price, y = review_scores_rating)) + 
+  geom_point()+ facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = listings_by_room_type, aes(x = price, y = review_scores_rating)) + 
+  geom_point()+ facet_wrap(~room_type)
+ggplot(data = listings_by_room_type, aes(x = review_scores_rating)) + 
+  geom_histogram()+ facet_wrap(~host_identity_verified)
 
 
 number_room_type <- listings_by_room_type %>% summarize(total = n())
@@ -91,9 +103,12 @@ View(number_property_type)
 #Min Castle, Chalet, Earth house
 
 #Find out types of property in each borough
-property_by_borough <- listings %>% group_by(neighbourhood_group_cleansed, room_type) %>% summarize(total = n())
+property_by_borough <- listings %>% group_by(neighbourhood_group_cleansed, 
+                                             room_type) %>% 
+  summarize(total = n())
 View(property_by_borough)
-ggplot(property_by_borough, aes(x = room_type, y = total)) + geom_point() + facet_wrap(~neighbourhood_group_cleansed)
+ggplot(property_by_borough, aes(x = room_type, y = total)) + geom_point() + 
+  facet_wrap(~neighbourhood_group_cleansed)
 
 
 
@@ -114,7 +129,8 @@ View(listings_url_duplicate)
 length(unique(listings$host_picture_url))
   #30162
 picture_duplicate <- listings
-picture_duplicate$duplicate_pic <- as.numeric(duplicated(listings$host_picture_url))
+picture_duplicate$duplicate_pic <- 
+  as.numeric(duplicated(listings$host_picture_url))
 listings_picture_duplicate <- picture_duplicate %>% filter(duplicate_pic ==1)
 View(listings_picture_duplicate)
 summary(listings_picture_duplicate)
@@ -127,8 +143,10 @@ length(unique(listings$summary))
 #3137 match
  
 
-summary_duplicate$duplicate_summary <- as.numeric(duplicated(listings$summary))
-listings_summary_duplicate <- summary_duplicate %>% filter(duplicate_summary ==1)
+summary_duplicate$duplicate_summary <- 
+  as.numeric(duplicated(listings$summary))
+listings_summary_duplicate <- summary_duplicate %>% 
+  filter(duplicate_summary ==1)
 View(listings_summary_duplicate)
 #need to figure out how to remove the NAs
 #maybe duplicated:
@@ -162,13 +180,22 @@ summary(listings_booked$review_scores_rating)
 
 
 ##after chris helped me, he suggest a better way to sort my listings
-duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & 
+                                                room_type == 
+                                                "Entire home/apt") %>% 
+  group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% 
+  filter(host_count > 1) %>% arrange(summary, host_since)
 #only entire apartments with duplicate summaries
-duplicate_summary <- listings %>% filter(summary != "" & summary != "." & room_type =="Entire home/apt") %>% group_by(summary) %>% mutate(summary_count=n()) %>% ungroup() %>% filter(summary_count>1) %>% arrange(host_name)
+duplicate_summary <- listings %>% filter(summary != "" & summary != "." & 
+                                           room_type =="Entire home/apt") %>% 
+  group_by(summary) %>% mutate(summary_count=n()) %>% ungroup() %>% 
+  filter(summary_count>1) %>% arrange(host_name)
 View(duplicate_summary)
 
 #to find multilistings 
-multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% 
+  group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% 
+  arrange(host_id)
 nrow(multilistings)
 #1730 multilistings
 summary(multilistings$host_count)
@@ -176,7 +203,10 @@ summary(multilistings$host_count)
 
 #plot of number of multilistings per borough (separated by number per host)
 
-ggplot(data = multilistings, aes(x = host_count)) + geom_histogram() +facet_wrap(~neighbourhood_group_cleansed)
+ggplot(data = multilistings, aes(x = host_count)) + geom_histogram() +
+  facet_wrap(~neighbourhood_group_cleansed) + 
+  ggtitle("Number of Listings per Host") + 
+  xlab("Number of Listings per Host")
 
 #create a table with just entire apt/hm
 listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
@@ -190,7 +220,9 @@ nrow(multilistings)/ nrow(listings_entire_apt) * 100
 #to create table with just entire apartment and home
 listings_entire_apt <- listings %>% filter(room_type == "Entire home/apt")
 #to create table of multilistings
-multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% 
+  group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% 
+  arrange(host_id)
 #to find percentage of multilistings
 nrow(multilistings)/ nrow(listings_entire_apt) * 100
 
@@ -201,16 +233,31 @@ nrow(multilistings_less30) / nrow(multilistings)
 #99.88% of postings are illegal
 
 #number of multilistings by borough
-boro_total_multilistings <- multilistings %>% ungroup() %>% group_by(neighbourhood_group_cleansed) %>% summarize(multilistings_per_borough = n()) 
-boro_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% group_by(neighbourhood_group_cleansed) %>% summarize(multilistings_per_borough_less30 = n())
-multilistings_by_borough <- inner_join(boro_total_multilistings, boro_total_multilistings_less30, by = "neighbourhood_group_cleansed")
-multilistings_by_borough$percentage_multilistings <- (multilistings_by_borough$multilistings_per_borough_less30/multilistings_by_borough$multilistings_per_borough)
+boro_total_multilistings <- multilistings %>% ungroup() %>% 
+  group_by(neighbourhood_group_cleansed) %>% 
+  summarize(multilistings_per_borough = n()) 
+boro_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% 
+  group_by(neighbourhood_group_cleansed) %>% 
+  summarize(multilistings_per_borough_less30 = n())
+multilistings_by_borough <- inner_join(boro_total_multilistings, 
+                                       boro_total_multilistings_less30, 
+                                       by = "neighbourhood_group_cleansed")
+multilistings_by_borough$percentage_multilistings <- 
+  (multilistings_by_borough$multilistings_per_borough_less30 / 
+     multilistings_by_borough$multilistings_per_borough)
 
 #number of multilistings by neighborhood
-neigh_total_multilistings <- multilistings %>% ungroup() %>% group_by(neighbourhood_cleansed) %>% summarize(multilistings_per_neigh = n()) 
-neigh_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% group_by(neighbourhood_cleansed) %>% summarize(multilistings_per_neigh_less30 = n())
-multilistings_by_neigh <- inner_join(neigh_total_multilistings, neigh_total_multilistings_less30, by = "neighbourhood_cleansed")
-multilistings_by_neigh$percentage_multilistings <- (multilistings_by_neigh$multilistings_per_neigh_less30/multilistings_by_neigh$multilistings_per_neigh)
+neigh_total_multilistings <- multilistings %>% ungroup() %>% 
+  group_by(neighbourhood_cleansed) %>% summarize(multilistings_per_neigh = n()) 
+neigh_total_multilistings_less30 <- multilistings_less30 %>% ungroup() %>% 
+  group_by(neighbourhood_cleansed) %>% 
+  summarize(multilistings_per_neigh_less30 = n())
+multilistings_by_neigh <- inner_join(neigh_total_multilistings, 
+                                     neigh_total_multilistings_less30, 
+                                     by = "neighbourhood_cleansed")
+multilistings_by_neigh$percentage_multilistings <- 
+  (multilistings_by_neigh$multilistings_per_neigh_less30 / 
+     multilistings_by_neigh$multilistings_per_neigh)
 
 
 
@@ -221,7 +268,11 @@ nrow(multilistings_less30) / nrow(multilistings)
 
 
 #matching summaries and matching 
-duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
+duplicate_summary_host <- listings %>% filter(summary != "" & 
+                                                summary != "." & 
+                                                room_type == "Entire home/apt") %>% 
+  group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% 
+  filter(host_count > 1) %>% arrange(summary, host_since)
 View(duplicate_summary_host)
 nrow(duplicate_summary_host)
 #120 
@@ -229,10 +280,23 @@ n_distinct(duplicate_summary_host$host_since)
 #110 distinct start dates
 
 #find matching summaries and host since
-duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)
-duplicate_host_date <- listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% group_by(host_since)%>% mutate(host_count_date=n()) %>% ungroup() %>% filter(host_count_date > 1) %>% group_by(host_id)
+duplicate_summary_host <- listings %>% filter(summary != "" & summary != "." & 
+                                                room_type == "Entire home/apt") %>% 
+  group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% 
+  filter(host_count > 1) %>% arrange(summary, host_since)
+duplicate_host_date <- listings %>% filter(summary != "" & summary != "." & 
+                                             room_type == "Entire home/apt") %>% 
+  group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% 
+  filter(host_count > 1) %>% group_by(host_since)%>% mutate(host_count_date=n()) %>% 
+  ungroup() %>% filter(host_count_date > 1) %>% group_by(host_id)
 duplicate_host_date <- listings %>% group_by(host_id)
-duplicate_summary_host_date <-  listings %>% filter(summary != "" & summary != "." & room_type == "Entire home/apt") %>% group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% filter(host_count > 1) %>% arrange(summary, host_since)%>% group_by(host_since) %>% mutate(host_since_count = n_distinct(host_since)) %>% filter(host_since_count > 1)
+duplicate_summary_host_date <-  listings %>% filter(summary != "" & 
+                                                      summary != "." & 
+                                                      room_type == "Entire home/apt") %>% 
+  group_by(summary) %>% mutate(host_count=n_distinct(host_id)) %>% ungroup() %>% 
+  filter(host_count > 1) %>% arrange(summary, host_since)%>% 
+  group_by(host_since) %>% mutate(host_since_count = n_distinct(host_since)) %>% 
+  filter(host_since_count > 1)
 View(duplicate_summary_host_date)
 
 
@@ -252,8 +316,12 @@ wordcloud(listings$description)
 prepurge_entire_apt <- listings1511 %>% filter(room_type == "Entire home/apt")
 postpurge_entire_apt <- listings151120 %>% filter(room_type == "Entire home/apt")
 #Create multi listings
-prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
-postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% 
+  group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% 
+  arrange(host_id)
+postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% 
+  group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>%
+  arrange(host_id)
 
 #find listings in pre not in post
 prepurge %>% filter(id != postpurge_id) %>% View
@@ -287,11 +355,15 @@ listings151120 <- mutate(listings151120, price = as.numeric(gsub("[$,]", "", pri
 #if statement: to find if the id was purged or not
 # looking at pre and post purge
 
-prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+prepurge <- listings1511 %>% filter(room_type == "Entire home/apt") %>% 
+  group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% 
+  arrange(host_id)
 View(prepurge)
 nrow(prepurge) #3331
 
-postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+postpurge <- listings151120 %>% filter(room_type == "Entire home/apt") %>% 
+  group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% 
+  arrange(host_id)
 View(postpurge)
 nrow(postpurge) #1829
 
