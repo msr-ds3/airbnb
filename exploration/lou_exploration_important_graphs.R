@@ -27,3 +27,5 @@ ggplot() +
   ylab("% Multi-Listings & Listings That Left Airbnb") 
 
 View(listings1509)
+
+

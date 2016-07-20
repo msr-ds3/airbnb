@@ -16,19 +16,10 @@ listings1604 <- read_csv("../../raw_data/2016-04-03-listings.csv", na='\\N') #AP
 listings1605 <- read_csv("../../raw_data/2016-05-02-listings.csv", na='\\N')
 listings1606 <- read_csv("../../raw_data/2016-06-02-listings.csv", na='\\N')
 
+#============================== functions ========================
 
-#how many people (that have multi-listings of entire homes) leave Airbnb that month? 
-this_month <- listings1509 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) 
-nrow(this_month) #3047
-
-next_month <- listings1510 %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1)
-nrow(next_month) #3088
-
-gone_listings <- anti_join(this_month, next_month, by = 'id')
-View(gone_listings)
-nrow(gone_listings)
-
-#make a function out of the above
+#left_entire: returns how many listings are in this month, but not in the next month. Listings are entire home multilistings.
+#             i.e. how many listings are gone from scrape date to scrape date
 left_entire <- function(this_month, next_month){
   this_month <- this_month %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) 
   next_month <- next_month %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1)
@@ -37,8 +28,7 @@ left_entire <- function(this_month, next_month){
   nrow(gone_listings)
 }
 
-
-#make database
+#create_left_database: create database of how many airbnbs are gone for that scrape date
 listings_gone <- c()
 scrape_date <- c()
 create_left_database <- function(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10){
@@ -61,7 +51,7 @@ how_many_entire_homes <- function(listings){
   entire_homes <- listings %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n())
   nrow(entire_homes)
 }
-how_many_entire_homes(listings1509)
+how_many_entire_homes(listings1509) #17026 (check)
 
 listings_gone_fraction <- c()
 what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9){
@@ -110,15 +100,15 @@ ggplot(aes(scrape_date, listings_gone),data=how_many_left) + geom_line(group=1) 
 #what percent of all listings did the 'leave' constitute
 all_listings_gone_fraction <- c()
 what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9){
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[1] / nrow(l1)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[2] / nrow(l2)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[3] / nrow(l3)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[4] / nrow(l4)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[5] / nrow(l5)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[6] / nrow(l6)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[7] / nrow(l7)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[8] / nrow(l8)) * 100)
-  all_listings_gone_fraction <- c(all_listings_gone_fraction, (database$listings_gone[9] / nrow(l9)) * 100)
+  all_listings_gone_fraction <- c(database$listings_gone[1] / nrow(l1) * 100,
+                                  (database$listings_gone[2] / nrow(l2)) * 100,
+                                  (database$listings_gone[3] / nrow(l3)) * 100,
+                                  (database$listings_gone[4] / nrow(l4)) * 100,
+                                  (database$listings_gone[5] / nrow(l5)) * 100,
+                                  (database$listings_gone[6] / nrow(l6)) * 100,
+                                  (database$listings_gone[7] / nrow(l7)) * 100,
+                                  (database$listings_gone[8] / nrow(l8)) * 100,
+                                  (database$listings_gone[9] / nrow(l9)) * 100)
   all_listings_gone_fraction
 }
 
@@ -128,7 +118,7 @@ how_many_left$percent_that_left <- what_fraction_left(how_many_left, listings150
                                                              listings1601, listings1602, listings1604, listings1605)
 View(how_many_entire_left)
 
-####################################################3
+####################################################
 #plotting only multi-listings, % that were gone from airbnb
 ggplot() +
   geom_point(aes(scrape_date, percent_that_left, group=1), colour="blue", data=how_many_entire_left) + 
