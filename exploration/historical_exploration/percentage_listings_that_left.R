@@ -146,6 +146,9 @@ df_shared <- create_database(listings1509, listings1510, listings1511, listings1
 listings_gone_df_entire_multi <- create_database(listings1509, listings1510, listings1511, listings151120, listings1512,
                                         listings1601, listings1602, listings1604, listings1605, listings1606, 
                                         "Entire home/apt", TRUE)
+(nrow(listings1511 %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) )/nrow(listings1511)) * 100
+(nrow(listings1605 %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) )/nrow(listings1605)) * 100
+View(listings_gone_df_entire_multi)
 
 # Private room, multilistings = TRUE
 df_private_multi <- create_database(listings1509, listings1510, listings1511, listings151120, listings1512,
@@ -158,12 +161,10 @@ df_private_multi <- create_database(listings1509, listings1510, listings1511, li
 scrape_date <- as.Date(c("2015-09-01","2015-10-01","2015-11-01","2015-11-20", "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02", "2016-06-01"))
 
 ggplot() +
-  geom_line(aes(scrape_date, df_all$listings_gone_percent), group=1, colour = "black") + 
-  geom_point(aes(scrape_date, df_all$listings_gone_percent), colour = "black") +
-  geom_line(aes(scrape_date, df_entire$listings_gone_percent), group=1, colour = "red") + 
-  geom_point(aes(scrape_date, df_entire$listings_gone_percent), colour = "red") +
-  geom_line(aes(scrape_date, df_private$listings_gone_percent), group=1, colour = "purple") + 
-  geom_point(aes(scrape_date, df_private$listings_gone_percent), colour = "purple") +
+  geom_line(aes(scrape_date, df_entire$listings_gone_percent), group=1, colour = "black") + 
+  geom_point(aes(scrape_date, df_entire$listings_gone_percent), colour = "black") +
+  geom_line(aes(scrape_date, df_private$listings_gone_percent), group=1, colour = "red") + 
+  geom_point(aes(scrape_date, df_private$listings_gone_percent), colour = "red") +
   geom_line(aes(scrape_date, df_shared$listings_gone_percent), group=1, colour = "green") + 
   geom_point(aes(scrape_date, df_shared$listings_gone_percent), colour = "green") 
   

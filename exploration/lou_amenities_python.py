@@ -13,7 +13,6 @@ for one_row in grand_amenities[1:len(grand_amenities)]:
 with open('amenities_and_id.tsv') as f:
     listings = f.readlines() #returns the rownum, id, list of amenities for each line
 
-
 grand_result = []
 amenities_string = "id," + ",".join(list_of_amenities)
 temp_arr = amenities_string.split(',')

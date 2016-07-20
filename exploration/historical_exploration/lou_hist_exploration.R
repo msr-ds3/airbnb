@@ -21,6 +21,7 @@ nrow(filter(listings1511, room_type == "Entire home/apt")) #17898
 nrow(filter(listings151120, room_type == "Entire home/apt")) #17780
 nrow(filter(listings1512, room_type == "Entire home/apt")) #18786 
 
+View(listings1606)
 #function to find % of multilistings
 percent_multilistings <- function(listings){
   multilistings <- listings %>% select(host_id, room_type) %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
