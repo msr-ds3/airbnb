@@ -84,6 +84,18 @@ summary(lm.fit1)
 lm.fit2 <- lm(price ~ TV + Wireless.Internet + Air.Conditioning + Free.Parking.on.Premises + Family.Kid.Friendly + Smoke.Detector + Essentials + Cable.TV + Fire.Extinguisher + Indoor.Fireplace + Breakfast + Lock.on.Bedroom.Door + Wheelchair.Accessible + Suitable.for.Events + Smoking.Allowed + Doorman, data=true_false_amen)
 summary(lm.fit2)
 
+#which amenity is the most/least prevalent?
+amenity_count <- c()
+for(i in 2:44)
+  amenity_count <- c(amenity_count, length(which(true_false_amen[,i], TRUE)))
+
+amenity_summary_df <- data.frame(amenity_type=total_amenities, frequency=amenity_count) %>% arrange(desc(amenity_count))
+View(amenity_summary_df)
+
+amenity_summary_df$amenity_type <- factor(amenity_summary_df$amenity_type, levels = amenity_summary_df$amenity_type[order(amenity_summary_df$frequency)])
+
+ggplot(aes(amenity_type, frequency), data=amenity_summary_df) + geom_point()
+
 #price based on host name (i.e. gender)
 
 #price ~ host response rate

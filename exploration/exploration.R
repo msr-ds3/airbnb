@@ -43,7 +43,10 @@ ggplot(calendar, aes(x = date, fill = available)) +
 # being that ones with good initial ratings are more likely to be booked and 
 # reviewed again compared to ones with a small # of bad reviews
 ggplot(listings, aes(x = review_scores_rating, y = number_of_reviews)) +
-  geom_point()
+  geom_point() +
+  ggtitle("Review Ratings Compared to the Number of Reviews") + 
+  xlab("Review Score Rating") +
+  ylab("Number of Reviews")
 
 # count by room type, colored by neighbourhood group
 # mostly entire home/apt in all 5 groups, shared room only apparent in 
