@@ -1,6 +1,6 @@
+#This file looks at number of reviews in other cities and sees the overlap of 
+#these reviews with NY
 
-
-#Look at loyalty
 #find the number of reviews each reviewer makes
 num_reviewers <- reviews %>% group_by(reviewer_id) %>% 
   summarize(num_reviews = n())
