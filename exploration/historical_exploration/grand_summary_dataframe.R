@@ -48,66 +48,32 @@ entire_homes <- c()
 num_multi <- c()
 percent_multi <- c()
 
-create_summary_dataframe <- function(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10){
-  scrape_date <- c(scrape_date, "2015-09")
-  scrape_date <- c(scrape_date, "2015-10")
-  scrape_date <- c(scrape_date, "2015-11")
-  scrape_date <- c(scrape_date, "2015-11-20")
-  scrape_date <- c(scrape_date, "2015-12")
-  scrape_date <- c(scrape_date, "2016-01")
-  scrape_date <- c(scrape_date, "2016-02")
-  scrape_date <- c(scrape_date, "2016-04")
-  scrape_date <- c(scrape_date, "2016-05")
-  scrape_date <- c(scrape_date, "2016-06")
+create_summary_dataframe <- function(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15){
+  scrape_date <- as.Date(c("2015-01-01", "2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", 
+                           "2015-08-01", "2015-09-01","2015-10-01","2015-11-01","2015-11-20", 
+                           "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02"))
   
-  entire_homes <- c(entire_homes, how_many_entire(l1))
-  entire_homes <- c(entire_homes, how_many_entire(l2))
-  entire_homes <- c(entire_homes, how_many_entire(l3))
-  entire_homes <- c(entire_homes, how_many_entire(l4))
-  entire_homes <- c(entire_homes, how_many_entire(l5))
-  entire_homes <- c(entire_homes, how_many_entire(l6))
-  entire_homes <- c(entire_homes, how_many_entire(l7))
-  entire_homes <- c(entire_homes, how_many_entire(l8))
-  entire_homes <- c(entire_homes, how_many_entire(l9))
-  entire_homes <- c(entire_homes, how_many_entire(l10))
+  entire_homes <- c(how_many_entire(l1), how_many_entire(l2), how_many_entire(l3), how_many_entire(l4), how_many_entire(l5),
+                    how_many_entire(l6), how_many_entire(l7), how_many_entire(l8), how_many_entire(l9), how_many_entire(l10),
+                    how_many_entire(l11), how_many_entire(l12), how_many_entire(l13), how_many_entire(l14), how_many_entire(l15))
+                    
+  num_listings <- c(how_many_listings(l1), how_many_listings(l2), how_many_listings(l3), how_many_listings(l4), how_many_listings(l5),
+                    how_many_listings(l6), how_many_listings(l7), how_many_listings(l8), how_many_listings(l9), how_many_listings(l10),
+                    how_many_listings(l11), how_many_listings(l12), how_many_listings(l13), how_many_listings(l14), how_many_listings(l15))
   
-  num_listings <- c(num_listings, how_many_listings(l1))
-  num_listings <- c(num_listings, how_many_listings(l2))
-  num_listings <- c(num_listings, how_many_listings(l3))
-  num_listings <- c(num_listings, how_many_listings(l4))
-  num_listings <- c(num_listings, how_many_listings(l5))
-  num_listings <- c(num_listings, how_many_listings(l6))
-  num_listings <- c(num_listings, how_many_listings(l7))
-  num_listings <- c(num_listings, how_many_listings(l8))
-  num_listings <- c(num_listings, how_many_listings(l9))
-  num_listings <- c(num_listings, how_many_listings(l10))
-  
-  num_multi <- c(num_multi, how_many_multilistings(l1))
-  num_multi <- c(num_multi, how_many_multilistings(l2))
-  num_multi <- c(num_multi, how_many_multilistings(l3))
-  num_multi <- c(num_multi, how_many_multilistings(l4))
-  num_multi <- c(num_multi, how_many_multilistings(l5))
-  num_multi <- c(num_multi, how_many_multilistings(l6))
-  num_multi <- c(num_multi, how_many_multilistings(l7))
-  num_multi <- c(num_multi, how_many_multilistings(l8))
-  num_multi <- c(num_multi, how_many_multilistings(l9))
-  num_multi <- c(num_multi, how_many_multilistings(l10))
+  num_multi <- c(how_many_multilistings(l1), how_many_multilistings(l2), how_many_multilistings(l3), how_many_multilistings(l4), how_many_multilistings(l5),
+                 how_many_multilistings(l6), how_many_multilistings(l7), how_many_multilistings(l8), how_many_multilistings(l9), how_many_multilistings(l10),
+                 how_many_multilistings(l11), how_many_multilistings(l12), how_many_multilistings(l13), how_many_multilistings(l14), how_many_multilistings(l15))
 
-  percent_multi <- c(percent_multi, what_percent_multilistings(l1))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l2))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l3))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l4))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l5))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l6))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l7))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l8))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l9))
-  percent_multi <- c(percent_multi, what_percent_multilistings(l10))
+  percent_multi <- c(what_percent_multilistings(l1), what_percent_multilistings(l2), what_percent_multilistings(l3), what_percent_multilistings(l4), what_percent_multilistings(l5),
+                     what_percent_multilistings(l6), what_percent_multilistings(l7), what_percent_multilistings(l8), what_percent_multilistings(l9), what_percent_multilistings(l10),
+                     what_percent_multilistings(l11), what_percent_multilistings(l12), what_percent_multilistings(l13), what_percent_multilistings(l14), what_percent_multilistings(l15))
   
   grand_summary <- data.frame(scrape_date, num_listings, entire_homes, num_multi, percent_multi)
 }
 
-grand_summary <- create_summary_dataframe(listings1509, listings1510, listings1511, listings151120, listings1512, 
+grand_summary <- create_summary_dataframe(listings1501, listings1503, listings1504, listings1505, listings1506, 
+                                          listings1509, listings1510, listings1511, listings151120, listings1512, 
                                           listings1601, listings1602, listings1604, listings1605, listings1606)
 
 View(grand_summary)
