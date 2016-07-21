@@ -39,21 +39,22 @@ left_entire <- function(this_month, next_month){
 #create_left_database: create database of how many airbnbs are gone for that scrape date
 listings_gone <- c()
 scrape_date <- c()
-create_left_database <- function(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15){
+create_left_database <- function(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16){
   scrape_date <- as.Date(c("2015-01-01", "2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", 
                            "2015-08-01", "2015-09-01","2015-10-01","2015-11-01","2015-11-20", 
-                           "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02"))
+                           "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02", "2016-06-01"))
 
   listings_gone <- c(left_entire(l1, l2), left_entire(l2, l3), left_entire(l3, l4), left_entire(l4, l5), left_entire(l5, l6), 
                      left_entire(l6, l7), left_entire(l7, l8), left_entire(l8, l9), left_entire(l9, l10), left_entire(l10, l11),
-                     left_entire(l10, l12), left_entire(l12, l13), left_entire(l13, l14), left_entire(l4, l15), left_entire(l5,l6))
+                     left_entire(l10, l12), left_entire(l12, l13), left_entire(l13, l14), left_entire(l14, l15), left_entire(l15,l16),
+                     0)
   
   listings_gone <- data.frame(scrape_date, listings_gone)
 }
 
 how_many_entire_left <- create_left_database(listings1501, listings1503, listings1504, listings1505, listings1506, 
-                                             listings1509, listings1510, listings1511, listings151120, listings1512, 
-                                             listings1601, listings1602, listings1604, listings1605, listings1606)
+                                             listings1508, listings1509, listings1510, listings1511, listings151120, 
+                                             listings1512, listings1601, listings1602, listings1604, listings1605, listings1606)
 
 View(how_many_entire_left)
 
@@ -66,7 +67,7 @@ how_many_entire_homes <- function(listings){
 how_many_entire_homes(listings1509) #17026 (check)
 
 listings_gone_fraction <- c()
-what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15){
+what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16){
   listings_gone_fraction <- c((database$listings_gone[1] / how_many_entire_homes(l1)) * 100,
                               (database$listings_gone[2] / how_many_entire_homes(l2)) * 100,
                               (database$listings_gone[3] / how_many_entire_homes(l3)) * 100,
@@ -81,13 +82,14 @@ what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10
                               (database$listings_gone[12] / how_many_entire_homes(l12)) * 100,
                               (database$listings_gone[13] / how_many_entire_homes(l13)) * 100,
                               (database$listings_gone[14] / how_many_entire_homes(l14)) * 100,
-                              (database$listings_gone[15] / how_many_entire_homes(l15)) * 100)
+                              (database$listings_gone[15] / how_many_entire_homes(l15)) * 100,
+                              (database$listings_gone[16] / how_many_entire_homes(l16)) * 100)
   listings_gone_fraction
 }
 how_many_entire_left$percent_that_left <- what_fraction_left(how_many_entire_left, 
                                                              listings1501, listings1503, listings1504, listings1505, listings1506, 
-                                                             listings1509, listings1510, listings1511, listings151120, listings1512, 
-                                                             listings1601, listings1602, listings1604, listings1605, listings1606)
+                                                             listings1508, listings1509, listings1510, listings1511, listings151120, 
+                                                             listings1512, listings1601, listings1602, listings1604, listings1605, listings1606)
 View(how_many_entire_left)
 
 ggplot(aes(x=scrape_date), data = how_many_entire_left) + geom_point(aes(y=how_many_entire_left$percent_that_left))
@@ -100,17 +102,22 @@ listings_that_left <- function(this_month, next_month){
 }
 
 listings_gone <- c()
-create_left_database_all <- function(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10){
-  scrape_date <- as.Date(c("2015-09-01","2015-10-01","2015-11-01","2015-11-20", "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02"))
+create_left_database_all <- function(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15, l16){
+  scrape_date <- as.Date(c("2015-01-01", "2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", 
+                           "2015-08-01", "2015-09-01","2015-10-01","2015-11-01","2015-11-20", 
+                           "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02", "2016-06-01"))
   
   listings_gone <- c(listings_that_left(l1, l2), listings_that_left(l2, l3), listings_that_left(l3, l4), listings_that_left(l4, l5), listings_that_left(l5, l6), 
-                     listings_that_left(l6, l7), listings_that_left(l7, l8), listings_that_left(l8, l9), listings_that_left(l9, l10))
+                     listings_that_left(l6, l7), listings_that_left(l7, l8), listings_that_left(l8, l9), listings_that_left(l9, l10), listings_that_left(l10, l11),
+                     listings_that_left(l11, l12), listings_that_left(l12, l13), listings_that_left(l13, l14), listings_that_left(l14, l15), listings_that_left(l15,l16),
+                     0)
   
   listings_gone <- data.frame(scrape_date, listings_gone)
 }
 
-how_many_left <- create_left_database_all(listings1509, listings1510, listings1511, listings151120, listings1512, 
-                                          listings1601, listings1602, listings1604, listings1605, listings1606)
+how_many_left <- create_left_database_all(listings1501, listings1503, listings1504, listings1505, listings1506, 
+                                          listings1508, listings1509, listings1510, listings1511, listings151120, 
+                                          listings1512, listings1601, listings1602, listings1604, listings1605, listings1606)
 
 View(how_many_left)
 
@@ -119,7 +126,7 @@ ggplot(aes(scrape_date, listings_gone),data=how_many_left) + geom_line(group=1) 
 
 #what percent of all listings did the 'leave' constitute
 all_listings_gone_fraction <- c()
-what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9){
+what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13, l14, l15){
   all_listings_gone_fraction <- c(database$listings_gone[1] / nrow(l1) * 100,
                                   (database$listings_gone[2] / nrow(l2)) * 100,
                                   (database$listings_gone[3] / nrow(l3)) * 100,
@@ -128,14 +135,26 @@ what_fraction_left <- function(database, l1, l2, l3, l4, l5, l6, l7, l8, l9){
                                   (database$listings_gone[6] / nrow(l6)) * 100,
                                   (database$listings_gone[7] / nrow(l7)) * 100,
                                   (database$listings_gone[8] / nrow(l8)) * 100,
-                                  (database$listings_gone[9] / nrow(l9)) * 100)
+                                  (database$listings_gone[9] / nrow(l9)) * 100,
+                                  (database$listings_gone[10] / nrow(l10)) * 100,
+                                  (database$listings_gone[11] / nrow(l11)) * 100,
+                                  (database$listings_gone[12] / nrow(l12)) * 100,
+                                  (database$listings_gone[13] / nrow(l13)) * 100,
+                                  (database$listings_gone[14] / nrow(l14)) * 100,
+                                  (database$listings_gone[15] / nrow(l15)) * 100,
+                                  (database$listings_gone[16] / nrow(l16)) * 100,
+                                  0)
   all_listings_gone_fraction
 }
 
-how_many_left$total_listings <- c(nrow(listings1509), nrow(listings1510), nrow(listings1511), nrow(listings151120), nrow(listings1512), 
-                                                      nrow(listings1601), nrow(listings1602), nrow(listings1604), nrow(listings1605))
-how_many_left$percent_that_left <- what_fraction_left(how_many_left, listings1509, listings1510, listings1511, listings151120, listings1512, 
-                                                             listings1601, listings1602, listings1604, listings1605)
+how_many_left$total_listings <- c(nrow(listings1501), nrow(listings1503), nrow(listings1504), nrow(listings1505), nrow(listings1506), 
+                                  nrow(listings1508), nrow(listings1509), nrow(listings1510), nrow(listings1511), nrow(listings151120),
+                                  nrow(listings1512), nrow(listings1601), nrow(listings1602), nrow(listings1604), nrow(listings1605), nrow(listings1606))
+
+how_many_left$percent_that_left <- what_fraction_left(how_many_left, 
+                                                      listings1501, listings1503, listings1504, listings1505, listings1506, 
+                                                      listings1508, listings1509, listings1510, listings1511, listings151120, 
+                                                      listings1512, listings1601, listings1602, listings1604, listings1605, listings1606)
 View(how_many_entire_left)
 
 ####################################################
@@ -158,6 +177,10 @@ ggplot() +
   scale_y_continuous(limits=c(0,20)) + 
   xlab("Month") + 
   ylab("% Multi-/Listings Gone") 
+
+how_many_left$percent_that_left
+how_many_entire_left$percent_that_left
+
 #red = gone listings of all 3 categories
 #blue = gone listings that are entire homes && multi-listings
 # huge revelation! The 'purge' seen in feb-march 2016 is NOT  a purge. The blue line 

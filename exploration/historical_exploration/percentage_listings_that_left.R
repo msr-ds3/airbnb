@@ -246,8 +246,8 @@ number_of_listings_df4 <- data.frame(scrape_date,
                                      entire_home_and_multilisting=df_entire_multi$num_listings)
                                    
 
-number_of_listings_df_long3 <- gather(number_of_listings_df3, listing_type, number_of_listings, -scrape_date)
-
+number_of_listings_df_long4 <- gather(number_of_listings_df4, listing_type, number_of_listings, -scrape_date)
+View(number_of_listings_)
 # creating plot
 ggplot(aes(scrape_date, number_of_listings, colour=listing_type), data=number_of_listings_df_long4) +
   geom_line() + geom_point() + 
