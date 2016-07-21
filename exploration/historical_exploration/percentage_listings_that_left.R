@@ -162,7 +162,7 @@ df_shared <- create_database(listings1501, listings1503, listings1504, listings1
 ##################### MULTI-LISTINGS
 
 # Entire home/apt, multilistings = TRUE
-listings_gone_df_entire_multi <- create_database(listings1501, listings1503, listings1504, listings1505, listings1506, 
+df_entire_multi <- create_database(listings1501, listings1503, listings1504, listings1505, listings1506, 
                                                  listings1509, listings1510, listings1511, listings151120, listings1512, 
                                                  listings1601, listings1602, listings1604, listings1605, listings1606,
                                                  "Entire home/apt", TRUE)
@@ -177,7 +177,7 @@ df_private_multi <- create_database(listings1501, listings1503, listings1504, li
                                     listings1601, listings1602, listings1604, listings1605, listings1606, 
                                                  "Private room", TRUE)
 # Shared room, multilistings = TRUE
-df_private_multi <- create_database(listings1501, listings1503, listings1504, listings1505, listings1506, 
+df_shared_multi <- create_database(listings1501, listings1503, listings1504, listings1505, listings1506, 
                                     listings1509, listings1510, listings1511, listings151120, listings1512, 
                                     listings1601, listings1602, listings1604, listings1605, listings1606, 
                                     "Shared room", TRUE)
@@ -201,23 +201,59 @@ number_of_listings_df_long <- gather(number_of_listings_df, listing_type, number
   # creating plot
 ggplot(aes(scrape_date, number_of_listings, colour=listing_type), data=number_of_listings_df_long) +
   geom_line() + geom_point() +
+  scale_x_date(breaks=date_breaks("months"), labels=date_format("%b")) + 
   xlab("Scrape Date") + ylab("Number of Listings") + ggtitle("Number of Listings on Airbnb")
 
-#############################33
+
+################################################## [2 TRASH]
 # plots number of 'all' and 'entire home && multi-listing' listings present on Airbnb
 # creating dataframe
-
 number_of_listings_df2 <- data.frame(scrape_date, 
                                     all_listings=df_all$num_listings, 
                                     entire_home_and_multilisting=df_entire_multi$num_listings)
 
 number_of_listings_df_long2 <- gather(number_of_listings_df2, listing_type, number_of_listings, -scrape_date)
 
+# creating plot
+ggplot(aes(scrape_date, number_of_listings, colour=listing_type), data=number_of_listings_df_long2) +
+  geom_line() + geom_point() +
+  scale_x_date(breaks=date_breaks("months"), labels=date_format("%b")) + 
+  xlab("Scrape Date") + ylab("Number of Listings") + 
+  ggtitle("Number of Listings on Airbnb\nAll Listings vs Entire Home/Apt Multilistings")
+
+################################################## [3]
+# plots number of multilistings present on Airbnb
+# creating dataframe
+number_of_listings_df3 <- data.frame(scrape_date, 
+                                     entire_home_and_multilisting=df_entire_multi$num_listings,
+                                     private_room_and_multilisting=df_private_multi$num_listings, 
+                                     shared_room_and_multilisting=df_shared_multi$num_listings
+                                     )
+
+number_of_listings_df_long3 <- gather(number_of_listings_df3, listing_type, number_of_listings, -scrape_date)
 
 # creating plot
-ggplot(aes(scrape_date, number_of_listings, colour=listing_type), data=number_of_listings_df_long) +
-  geom_line() + geom_point() +
-  xlab("Scrape Date") + ylab("Number of Listings") + ggtitle("Number of Listings on Airbnb")
+ggplot(aes(scrape_date, number_of_listings, colour=listing_type), data=number_of_listings_df_long3) +
+  geom_line() + geom_point() + 
+  scale_x_date(breaks=date_breaks("months"), labels=date_format("%b")) + 
+  xlab("Scrape Date") + ylab("Number of Listings") + 
+  ggtitle("Number of Multi-listings on Airbnb\nBroken Down By Type") 
+  
+################################################## [4]
+# plots number of multilistings present on Airbnb
+# creating dataframe
+number_of_listings_df4 <- data.frame(scrape_date, 
+                                     entire_home_and_multilisting=df_entire_multi$num_listings)
+                                   
+
+number_of_listings_df_long3 <- gather(number_of_listings_df3, listing_type, number_of_listings, -scrape_date)
+
+# creating plot
+ggplot(aes(scrape_date, number_of_listings, colour=listing_type), data=number_of_listings_df_long4) +
+  geom_line() + geom_point() + 
+  scale_x_date(breaks=date_breaks("months"), labels=date_format("%b")) + 
+  xlab("Scrape Date") + ylab("Number of Listings") + 
+  ggtitle("Number of Multi-listings on Airbnb\nEntire Home/Apt") 
 
 
 
@@ -227,6 +263,7 @@ ggplot(aes(scrape_date, number_of_listings, colour=listing_type), data=number_of
 
 
 
+######################################## [rubbish]
 
 # plots percent of <typeof> listings that have left Airbnb on that scrape date
 ggplot() +
