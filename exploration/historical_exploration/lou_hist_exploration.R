@@ -5,6 +5,14 @@ library(lubridate)
 library(ggplot2)
 library(scales)
 
+listings1501 <- read_csv("../../raw_data/2015-01-01-listings.csv", na='\\N')
+# No data for Feb 2015
+listings1503 <- read_csv("../../raw_data/2015-03-01-listings.csv", na='\\N')
+listings1504 <- read_csv("../../raw_data/2015-04-01-listings.csv", na='\\N')
+listings1505 <- read_csv("../../raw_data/2015-05-01-listings.csv", na='\\N')
+listings1506 <- read_csv("../../raw_data/2015-06-01-listings.csv", na='\\N')
+# No data for July 2015
+listings1508 <- read_csv("../../raw_data/2015-08-01-listings.csv", na='\\N')
 listings1509 <- read_csv("../../raw_data/2015-09-01-listings.csv", na='\\N')
 listings1510 <- read_csv("../../raw_data/2015-10-01-listings.csv", na='\\N')
 listings1511 <- read_csv("../../raw_data/2015-11-01-listings.csv", na='\\N')
@@ -24,12 +32,20 @@ nrow(filter(listings1512, room_type == "Entire home/apt")) #18786
 View(listings1606)
 #function to find % of multilistings
 percent_multilistings <- function(listings){
-  multilistings <- listings %>% select(host_id, room_type) %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) %>% arrange(host_id)
+  multilistings <- listings %>% select(host_id, room_type) %>% filter(room_type == "Entire home/apt") %>% group_by(host_id) %>% mutate(host_count = n()) %>% filter(host_count > 1) 
   listings_entire_apt <- listings %>% select(host_id, room_type) %>% filter(room_type == "Entire home/apt")
   nrow(multilistings)/ nrow(listings_entire_apt) * 100
 }
 
-#percentage of multilistings
+#### percentage of multilistings
+january15 <- percent_multilistings(listings1501)
+# Feb 2015 missing
+march15 <- percent_multilistings(listings1503)
+april15 <- percent_multilistings(listings1504)
+may15 <- percent_multilistings(listings1505)
+june15 <-percent_multilistings(listings1506)
+# July 2015 missing
+august15 <- percent_multilistings(listings1508)
 september15 <- percent_multilistings(listings1509)
 october15<- percent_multilistings(listings1510)
 november15 <- percent_multilistings(listings1511)
@@ -42,8 +58,10 @@ april16 <- percent_multilistings(listings1604)
 may16 <- percent_multilistings(listings1605)
 june16 <-percent_multilistings(listings1606)
 
-dates <- as.Date(c("2015-09-01","2015-10-01","2015-11-01","2015-11-20", "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02","2016-06-02"))
-percent_of_multilistings <- c(september15, october15, november15, november_late15, december15, january16, february16, april16, may16, june16)
+dates <- as.Date(c("2015-01-01", "2015-03-01", "2015-04-01", "2015-05-01", "2015-06-01", 
+                   "2015-08-01", "2015-09-01","2015-10-01","2015-11-01","2015-11-20",
+                   "2015-12-02", "2016-01-01","2016-02-02","2016-04-03","2016-05-02","2016-06-02"))
+percent_of_multilistings <- c(january15, march15, april15, may15, june15, august15, september15, october15, november15, november_late15, december15, january16, february16, april16, may16, june16)
 
 df_multilistings <- data.frame(dates, percent_of_multilistings)
 View(df_multilistings)
@@ -54,7 +72,8 @@ ggplot(aes(dates, percent_of_multilistings), data=df_multilistings) +
   scale_x_date(breaks=date_breaks("months"), labels=date_format("%b")) +
   scale_y_continuous(limits=c(0,20)) + 
   xlab("Month") + 
-  ylab("% of Multi-listings") 
+  ylab("% of Multi-listings") +
+  ggtitle("Entire Home/Apartment Multilistings Over Time")
 
 View(listings1511)
 # looking at pre and post purge
