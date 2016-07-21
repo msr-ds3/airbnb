@@ -2,10 +2,10 @@ library(dplyr)
 library(readr)
 
 # load data into dataframes
-reviews <- read_csv("reviews.csv", na='\\N')
-listings <- read_csv("listings.csv", na='\\N')
-calendar <- read_csv("calendar.csv", na='\\N')
-neighbourhoods <- read_csv("neighbourhoods.csv", na='\\N')
+reviews <- read_csv("raw_data/reviews.csv", na='\\N')
+listings <- read_csv("raw_data/listings.csv", na='\\N')
+calendar <- read_csv("raw_data/calendar.csv", na='\\N')
+neighbourhoods <- read_csv("raw_data/neighbourhoods.csv", na='\\N')
 
 # change price fields to numeric
 listings <- mutate(listings, price = as.numeric(gsub("[$,]", "", price)), 
