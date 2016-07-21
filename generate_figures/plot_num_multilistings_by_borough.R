@@ -1,6 +1,6 @@
 #To plot number of MultiListings per Host separated by Borough
 
-library(ggplot)
+library(ggplot2)
 
 #To find number of listings for each host and then isolate just the multilistings
 multilistings <- listings %>% filter(room_type == "Entire home/apt") %>% 
