@@ -9,11 +9,17 @@ load("reviewer_history.RData")
 
 #create histogram of number of occurances of each listing in 2015
 
+listings_history 
+
 ggplot(data = listings_history, aes(x = total_occ_2015)) + 
   geom_histogram() +
   xlab("Total Occurances in 2015") +
-  ggtitle("Frequency of Occurances by Listing for 2015")
+  ggtitle("Frequency of Occurances by Listing for 2015") +
+  ggsave(file = "../airbnb/figures/hist_occurances_by_listing_2015.pdf")
 
+
+#create histogram of start date
+ggplot(data = listings_history, aes(x = start_date)) + geom_histogram()
 
 
 
