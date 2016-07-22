@@ -28,12 +28,15 @@ ggplot(data = listings_history_january, aes(x = total_occ_2015)) +
   ylab("Frequency") +
   ggtitle(
     "Frequency of Occurences by Listings for 2015 for January 2015 Cohort") +
-  ggsave(file = "../airbnb/figures/hist_occurances_by_listing_2015_jan2015cohort.pdf")
+  ggsave(file = 
+           "../airbnb/figures/hist_occurances_by_listing_2015_jan2015cohort.pdf")
 
 
 #create histogram of number of reviews of each reviewer in 2015
-ggplot(data = reviewer_history.RData, aes(x= )) + 
+reviewer_data_filter <- reviewer_data %>% filter(num_within_time_period <10)
+ggplot(data = reviewer_data_filter, aes(x = num_within_time_period)) + 
   geom_histogram() + 
-  xlab("") +
-  ggtitle("")
+  xlab("Number of Reviews in 2015") +
+  ggtitle("Frequency of Reviews in 2015")
 
+##have to ggsave but ask about what want to do

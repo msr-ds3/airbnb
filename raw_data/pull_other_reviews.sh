@@ -4,7 +4,7 @@
 #   Paris, New York, London, Barcelona, Berlin, Los Angeles,
 #   Copenhagen, Sydney, San Francisco, and Chicago
 #
-# usage: ./pull_old_listings.sh
+# usage: ./pull_other_reviews.sh
 
 params=("france/ile-de-france/paris/2016-07-03" "united-states/ny/new-york-city/2016-07-02" 
 	"united-kingdom/england/london/2016-06-02" "spain/catalonia/barcelona/2016-01-03"
@@ -17,6 +17,6 @@ do
   IFS='/' read -r -a array <<< "$p";
   wget "http://data.insideairbnb.com/"$p"/data/reviews.csv.gz"
   gzip -d reviews.csv.gz
-  mv reviews.csv ${array[2]}-reviews.csv
+  mv reviews.csv ${array[2]}-cities-reviews.csv
 done
 
