@@ -6,7 +6,7 @@ library(lubridate)
 
 
 # read review csvs for ten cities (run pull_other_reviews.sh to pull files)
-csvs <- Sys.glob('../raw_data/*-reviews.csv')
+csvs <- Sys.glob('../raw_data/*cities-reviews.csv')
 reviews <- data.frame()
 for (csv in csvs) {
   print(csv)
