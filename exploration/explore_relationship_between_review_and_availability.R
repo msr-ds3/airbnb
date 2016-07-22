@@ -1,3 +1,4 @@
+#Plot the relationship between reviews and blocked off days
 #To find out if there is a correlation between number of reviews and 
 #the availabilty per month. 
 
@@ -27,7 +28,8 @@ box_plot_est <- est_blocked_cal_2 %>%
 ggplot(box_plot_est, aes(x = rounded_boxplot, y = est_review_days)) + 
   geom_boxplot() + xlab("Number of Blocked Out Days per Year") +
   ylab("Estimated Booked Days by Review") + 
-  ggtitle("Relationship Between Reviews and Availability")
+  ggtitle("Relationship Between Reviews and Availability") + 
+  ggsave(file = "../airbnb/figures/relationship_between_reviews_availability.pdf")
 
 #look at different types of listings
 #Entire apartments
@@ -59,21 +61,3 @@ ggplot(est_blocked_cal_shared, aes(x = estimated_booked_year,
 cor(est_blocked_cal_shared$estimated_booked_year, 
     est_blocked_cal_shared$est_review_days)
 #0.06545039
-
-##listings with 90 days
-listings_blocked_cal <- listings %>% mutate(blocked_days_90 = 
-                                              90 - availability_30)
-listings_blocked_cal2 <- listings_blocked_cal %>% 
-  mutate(estimated_booked_year_90 = 4 * blocked_days_90)
-
-est_blocked_cal <- inner_join(reviews_2015_by_listing, listings_blocked_cal2, 
-                              by = "id" )
-View(est_blocked_cal)
-est_blocked_cal_2 <- est_blocked_cal %>% 
-  mutate(est_review_days = total_reviews_2015 * 5)
-ggplot(est_blocked_cal_2, aes(x = estimated_booked_year_90, 
-                              y = est_review_days)) + geom_point()
-
-cor(est_blocked_cal_2$estimated_booked_year_90, 
-    est_blocked_cal_2$est_review_days)
-#-0.006
