@@ -34,6 +34,7 @@ get_reviewer_data <- function(df, start_month = FALSE, end_month = "2015-12-31",
   if (start_month == FALSE) {
     start_month <- min(df$date)
   }
+  
   tmp_1 <- group_by(df, reviewer_id) %>%
     arrange(date) %>%
     summarize(first_month = first(date),
@@ -55,7 +56,11 @@ get_reviewer_data <- function(df, start_month = FALSE, end_month = "2015-12-31",
 
 # call looking at review data using default parameters, running to the 
 # end of the current data set
-reviewer_data <- get_reviewer_data(reviews)
+# reviewer_data <- get_reviewer_data(reviews)
+
+# starting with January 2015
+reviewer_data <- get_reviewer_data(reviews, "2015-01-01", "2015-12-31")
 
 # saving reviews and resulting data
 save(reviews, reviewer_data, file = "reviewer_data.RData")
+load("reviewer_data.RData")
