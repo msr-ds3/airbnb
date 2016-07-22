@@ -1,7 +1,10 @@
 
 #f = open('amenities_and_id.tsv', 'r+')
 
-grand_amenities = open('unique_amenities.tsv').readlines()
+file_name = 'unique_amenities_grand.tsv' #change this if you want to work on different files
+name_of_skinny_table = 'amenities_and_id_grand.tsv'
+
+grand_amenities = open(file_name).readlines()
 list_of_amenities = []
 for one_row in grand_amenities[1:len(grand_amenities)]:
     nrow, item = one_row.strip().replace('\"', '').split('\t')
@@ -10,7 +13,7 @@ for one_row in grand_amenities[1:len(grand_amenities)]:
 #print(list_of_amenities) #prints out all unique amenities in airbnb
 #print(len(list_of_amenities)) #43
 
-with open('amenities_and_id.tsv') as f:
+with open(name_of_skinny_table) as f:
     listings = f.readlines() #returns the rownum, id, list of amenities for each line
 
 grand_result = []
