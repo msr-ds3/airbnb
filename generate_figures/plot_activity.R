@@ -39,4 +39,8 @@ ggplot(data = reviewer_data_filter, aes(x = num_within_time_period)) +
   xlab("Number of Reviews in 2015") +
   ggtitle("Frequency of Reviews in 2015")
 
+ggplot(data = reviewer_data, aes(x = num_within_time_period)) + 
+  geom_histogram() + 
+  xlab("Number of Reviews in 2015") +
+  ggtitle("Frequency of Reviews in 2015")
 ##have to ggsave but ask about what want to do
