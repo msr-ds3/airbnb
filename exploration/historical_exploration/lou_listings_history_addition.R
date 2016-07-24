@@ -14,10 +14,11 @@ listings_history <- listings_history %>% group_by(host_id) %>% mutate(host_listi
 
 ######### Adding T/F amenities column
 # 1. create giant skinny database of all 2015-2016 scrapes
-skinny_listings <- select(all_listings, id, amenities)
+skinny_listings <- select(all_listings, id, amenities) %>% filter(is.na(amenities) == FALSE) #filter for NAs
 View(skinny_listings)
-write.table(skinny_listings, "amenities_and_id_grand.tsv", sep='\t')
-sum(is.na(skinny_listings$amenities)) #136,692
+write.table(skinny_listings, "../amenities_and_id_grand.tsv", sep='\t')
+sum(is.na(skinny_listings$amenities)) #0. There should be 0 NAs
+nrow(skinny_listings) # 331,727
 
 # 2. create a list of all unique amenities and export it to tsv
 total_amenities = c()
@@ -39,7 +40,8 @@ for(i in 1:nrow(skinny_listings)){
 }
 
 total_amenities
-write.table(total_amenities, '../../raw_data/unique_amenities_grand.tsv', sep='\t')
+write.table(total_amenities, '../unique_amenities_grand.tsv', sep='\t') #list of unique amenities for all 2015-16
 
 # 3. 
-       
+amenities_table_grand = read.csv('table_amenities_grand.csv')
+View(amenities_table_grand)
