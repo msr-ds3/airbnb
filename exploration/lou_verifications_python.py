@@ -13,7 +13,7 @@ for one_row in grand_verifications[1:len(grand_verifications)]:
     list_of_verifications.append(item)
 
 #print(list_of_verifications) #prints out all unique verifications in airbnb
-#print(len(list_of_verifications))
+#print(len(list_of_verifications)) #15 verifications
 
 with open(skinny_table) as f:
     listings = f.readlines() #returns the rownum, id, list of verifications for each line
@@ -22,12 +22,13 @@ grand_result = []
 verifications_string = "id," + ",".join(list_of_verifications)
 temp_arr = verifications_string.split(',')
 verifications_string = ",".join(temp_arr)
-print verifications_string # <<<<< need this for output
+print(verifications_string) # <<<<< need this for output
 
 for listing in listings[1:len(listings)]:
     #print(listing)
     rownum, id, verifications, scrape_date = listing.split('\t')
-    listings_verifications = verifications.replace('[', '').replace(']', '').replace('\\', '').replace('\"', '').strip().split(',') #strip \n and split it by comma and backslash
+    listings_verifications = verifications.replace('[', '').replace(']', '').replace('\\', '').replace('\'', '').replace('\"' , '').replace(' ', '').strip().split(',') #strip \n and split it by comma and backslash
+    #print(listings_verifications)
     #to do: refactor replacements of [, ], \, "
 
     #entering each verification item within a listing
@@ -44,4 +45,4 @@ for listing in listings[1:len(listings)]:
     #print(len(true_false_row))
 
     row_string = ",".join(true_false_row)
-    print(row_string)
+    print(row_string) #<<< need this

@@ -53,10 +53,16 @@ find_unique_amenities <- function(skinny_df, lower_date="2015-01-01", upper_date
   }
   total_amenities 
 }
+
 total_amenities = find_unique_amenities(skinny_listings) #remember, can include lower and upper boundaries 
+length(total_amenities)
 write.table(total_amenities, '../unique_amenities_grand.tsv', sep='\t') #list of unique amenities for all 2015-16
   
 # 3. After running through python script, returns T/F table of amenities
 # python lou_amenities_python.py > table_amenities_grand.csv
 amenities_table_grand = read.csv('../table_amenities_grand.csv')
 View(amenities_table_grand)
+
+amenities_table_grand <- amenities_table_grand %>% group_by(id) %>% arrange(id) %>% filter(row_number() == n())
+View(amenities_table_grand) #takes the last instance of the listing amenities
+write.table(amenities_table_grand, '../table_amenities_grand_final.csv')

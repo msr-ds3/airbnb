@@ -55,3 +55,6 @@ write.table(total_verifications, '../unique_verifications_grand.tsv', sep='\t') 
 verifications_table_grand = read.csv('../table_verifications_grand.csv')
 View(verifications_table_grand)
 
+verifications_table_grand <- verifications_table_grand %>% group_by(id) %>% arrange(id) %>% filter(row_number() == n())
+View(verifications_table_grand) #take the last instance of verifications
+write.table(verifications_table_grand, '../table_verifications_grand_final.csv')
