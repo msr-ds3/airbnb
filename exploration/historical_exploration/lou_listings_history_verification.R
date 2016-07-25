@@ -29,7 +29,8 @@ find_unique_verifications <- function(skinny_df, lower_date="2015-01-01", upper_
     #begin to obtain unique verifications for the specified subset of data
     for(i in 1:nrow(sliced_df)){
       #print(sprintf("============ %f", i)) # this was a checker
-      one_listings_verifications <- strsplit(gsub("\\[|\\]|\'", "", sliced_df[i, "host_verifications"]), "[,]")[[1]] #replaces [ ] ' with nothing
+      one_listings_verifications <- strsplit(gsub("\\[|\\]|\'|\\s", "", sliced_df[i, "host_verifications"]), "[,]")[[1]] 
+      #replaces [ ] ' with nothing >> \\[ OR \\] OR \\' OR \\s
       #verifications for listing number #listnum
       
       if(length(one_listings_verifications) != 0){ #only continue if verifications are not empty for that listing
@@ -46,6 +47,11 @@ find_unique_verifications <- function(skinny_df, lower_date="2015-01-01", upper_
   total_verifications
 }
 total_verifications = find_unique_verifications(skinny_listings_v) #remember, can include lower and upper date boundaries 
-View(total_verifications) #21 unique ways of verification!
+View(total_verifications) #15 unique ways of verification!
 write.table(total_verifications, '../unique_verifications_grand.tsv', sep='\t') #list of unique verifications for all 2015-16
+
+# 3. After running through python script, returns T/F table of verifications
+# (in exploration folder) $python lou_verifications_python.py > table_amenities_grand.csv
+verifications_table_grand = read.csv('../table_verifications_grand.csv')
+View(verifications_table_grand)
 
