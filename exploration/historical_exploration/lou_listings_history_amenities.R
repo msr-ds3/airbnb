@@ -65,13 +65,8 @@ View(amenities_table_grand)
 
 amenities_table_grand <- amenities_table_grand %>% group_by(id) %>% arrange(id) %>% filter(row_number() == n())
 View(amenities_table_grand) #takes the last instance of the listing amenities
-write_csv(amenities_table_grand, '../table_amenities_grand_final.csv')
 
-################################################################
 # Sum the total number of amenities per listing
-#which amenity is the most/least prevalent?
-amenity_count <- c()
-test <- mutate(amenities_table_grand, amenities_count = )
-View(test)
 amenities_table_grand$amenities_count <- rowSums(amenities_table_grand[2:44])
 View(amenities_table_grand)
+write_csv(amenities_table_grand, '../table_amenities_grand_final.csv')
