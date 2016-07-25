@@ -38,9 +38,9 @@ get_reviewer_data <- function(df, start_month = FALSE, end_month = "2015-12-31",
   tmp_1 <- group_by(df, reviewer_id) %>%
     arrange(date) %>%
     summarize(first_month = first(date),
-              first_month_num = month(first(date)),
+              first_diff_2015 = difftime(first(date), as.Date("2015-01-01"), units = c("weeks")),
               last_month = last(date),
-              last_month_num = month(last(date)),
+              last_diff_2015 = difftime(last(date), as.Date("2015-12-31"), units = c("weeks")),
               num_in_2016 = sum(date >= as.Date("2016-01-01", "%Y-%m-%d") 
                                 & date <= as.Date(end_in_2016, "%Y-%m-%d")),
               all_time_reviews = n(),
@@ -52,7 +52,9 @@ get_reviewer_data <- function(df, start_month = FALSE, end_month = "2015-12-31",
     summarize(text_within_time_period = paste(comments, collapse = "|"),
               num_within_time_period = n(),
               first_within_time_period = first(date),
-              last_within_time_period = last(date))
+              first_month_within_time_period = month(first(date)),
+              last_within_time_period = last(date),
+              last_month_within_time_period = month(last(date)))
   
   inner_join(tmp_1, tmp_2, by = "reviewer_id")
 }
