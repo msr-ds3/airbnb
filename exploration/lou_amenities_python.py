@@ -3,7 +3,7 @@
 
 file_name = 'unique_amenities_grand.tsv' #change these if you want to work on different files
 skinny_table = 'amenities_and_id_grand.tsv'
-print(skinny_table)
+#print(skinny_table)
 
 grand_amenities = open(file_name).readlines()
 list_of_amenities = []
