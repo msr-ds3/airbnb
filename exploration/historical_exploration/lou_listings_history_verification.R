@@ -51,7 +51,15 @@ View(total_verifications) #15 unique ways of verification!
 write.table(total_verifications, '../unique_verifications_grand.tsv', sep='\t') #list of unique verifications for all 2015-16
 
 # 3. After running through python script, returns T/F table of verifications
-# (in exploration folder) $python lou_verifications_python.py > table_amenities_grand.csv
+# (in exploration folder) $python lou_verifications_python.py > table_verifications_grand.csv
 verifications_table_grand = read.csv('../table_verifications_grand.csv')
 View(verifications_table_grand)
+
+verifications_table_grand <- verifications_table_grand %>% group_by(id) %>% arrange(id) %>% filter(row_number() == n())
+View(verifications_table_grand) #take the last instance of verifications
+
+# Sum the total number of verifications per listing
+verifications_table_grand$verifications_count <- rowSums(verifications_table_grand[2:16])
+View(verifications_table_grand)
+write_csv(verifications_table_grand, '../table_verifications_grand_final.csv')
 

@@ -25,9 +25,10 @@ print(amenities_string)
 
 
 for listing in listings[1:len(listings)]:
-    rownum, id, amenities = listing.split('\t')
+    rownum, id, amenities, scrape_date = listing.split('\t')
     listings_amenities = amenities.replace('{', '').replace('}', '').replace('\\', '').replace('\"', '').strip().split(',') #strip \n and split it by comma and backslash
     #refactor replacements of {, }, \, "
+    print(listings_amenities)
 
     #entering each amenity item within a listing
     true_false_row = [id] #start off with listing ID at the front
