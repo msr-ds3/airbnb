@@ -5,7 +5,7 @@ library(ggplot2)
 
 #load the derived data sets
 load("listings_history.RData")
-load("reviewer_history.RData")
+reviews <- read_csv("../raw_data/us_rev_data.csv", na='\\N')
 
 #create histogram of number of occurances of each listing in 2015
 
@@ -33,14 +33,20 @@ ggplot(data = listings_history_january, aes(x = total_occ_2015)) +
 
 
 #create histogram of number of reviews of each reviewer in 2015
-reviewer_data_filter <- reviewer_data %>% filter(num_within_time_period <10)
-ggplot(data = reviewer_data_filter, aes(x = num_within_time_period)) + 
+ggplot(data = reviews, aes(x = num_in_2015)) + 
   geom_histogram() + 
   xlab("Number of Reviews in 2015") +
-  ggtitle("Frequency of Reviews in 2015")
+  ggtitle("Frequency of Reviews in 2015") +
+  ggsave(file = 
+           "../figures/us_reviews_2015.pdf")
 
-ggplot(data = reviewer_data, aes(x = num_within_time_period)) + 
+
+#to see the number that have less than 6
+reviews_under10 <- reviews %>% filter(num_in_2015 <=6)
+ggplot(data = reviews_under10, aes(x = num_in_2015)) + 
   geom_histogram() + 
   xlab("Number of Reviews in 2015") +
-  ggtitle("Frequency of Reviews in 2015")
+  ggtitle("Frequency of Reviews in 2015") + 
+  ggsave(file = 
+           "../figures/us_reviews_under_6_2015.pdf")
 ##have to ggsave but ask about what want to do
