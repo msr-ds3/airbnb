@@ -15,6 +15,9 @@ names(rev_data)[names(rev_data) == "locations_within_time_period"] <- "locations
 # mutate to create logical column of whether there is a review in 2016 or not
 rev_data <- mutate(rev_data, has_review_2016 = num_in_2016 > 0)
 
+# filtering out NAs
+rev_data_filtered <- filter(rev_data, !is.na(text_in_2015))
+
 # write to csv
 write_csv(rev_data, "../raw_data/us_rev_data.csv")
 
@@ -49,5 +52,8 @@ summary(model1)
 # Number of Fisher Scoring iterations: 4
 
 
-model2 <- num_in_2016 ~ last_in_2015 + num_in_2015
+model2 <- lm(num_in_2016 ~ last_month_in_2015 + num_in_2015, data = rev_data)
+# R-squared NaN????
+
+
 

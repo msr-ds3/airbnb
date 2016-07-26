@@ -18,7 +18,7 @@ for (csv in csvs) {
 # arrange by listing_id and date, then remove duplicates by review id
 reviews <- reviews %>%
   arrange(listing_id, date) %>%
-  distinct(id)
+  distinct(id)  # dplyr 0.4.3
 
 # determine 2015 data columns
 tmp_1 <- group_by(reviews, listing_id) %>%
@@ -26,7 +26,8 @@ tmp_1 <- group_by(reviews, listing_id) %>%
            date <= as.Date("2015-12-31", "%Y-%m-%d")) %>%
   summarize(text_2015 = paste(comments, collapse = "|"),
             first_review_2015 = first(date),
-            last_review_2015 = last(date))
+            last_review_2015 = last(date),
+            num_reviews_in_2015 = n())
 
 # determine 2016 data columns
 tmp_2 <- group_by(reviews, listing_id) %>%
@@ -34,11 +35,22 @@ tmp_2 <- group_by(reviews, listing_id) %>%
            date <= as.Date("2016-12-31", "%Y-%m-%d")) %>%
   summarize(text_2016 = paste(comments, collapse = "|"),
             first_review_2016 = first(date),
-            last_review_2016 = last(date))
+            last_review_2016 = last(date),
+            num_reviews_in_2016 = n())
+
+tmp_3 <- group_by(reviews, listing_id) %>%
+  filter(date <= as.Date("2015-12-31", "%Y-%m-%d")) %>%
+  summarize(num_as_of_2015 = n())
+
+tmp_4 <- group_by(reviews, listing_id) %>%
+  filter(date <= as.Date("2016-12-31", "%Y-%m-%d")) %>%
+  summarize(num_as_of_2016 = n())
 
 # join columns together (NAs appear where a listing received reviews in one year
 # and not the other)
-ny_reviews <- full_join(tmp_1, tmp_2, by = "listing_id")
+ny_reviews <- full_join(tmp_1, tmp_2, by = "listing_id") %>%
+  full_join(., tmp_3, by = "listing_id") %>%
+  full_join(., tmp_4, by = "listing_id")
 
 # save to RData
 save(ny_reviews, file = "ny_reviews.RData")
