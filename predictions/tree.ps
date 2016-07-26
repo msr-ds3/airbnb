@@ -1,0 +1,458 @@
+%!PS-Adobe-3.0
+%%DocumentNeededResources: font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Helvetica-Oblique
+%%+ font Helvetica-BoldOblique
+%%+ font Symbol
+%%DocumentMedia: letter 612 792 0 () ()
+%%Title: R Graphics Output
+%%Creator: R Software
+%%Pages: (atend)
+%%Orientation: Landscape
+%%BoundingBox: 18 18 594 774
+%%EndComments
+%%BeginProlog
+/bp  { gs sRGB 612.00 0 translate 90 rotate gs } def
+% begin .ps.prolog
+/gs  { gsave } bind def
+/gr  { grestore } bind def
+/ep  { showpage gr gr } bind def
+/m   { moveto } bind def
+/l  { rlineto } bind def
+/np  { newpath } bind def
+/cp  { closepath } bind def
+/f   { fill } bind def
+/o   { stroke } bind def
+/c   { newpath 0 360 arc } bind def
+/r   { 4 2 roll moveto 1 copy 3 -1 roll exch 0 exch rlineto 0 rlineto -1 mul 0 exch rlineto closepath } bind def
+/p1  { stroke } bind def
+/p2  { gsave bg fill grestore newpath } bind def
+/p3  { gsave bg fill grestore stroke } bind def
+/p6  { gsave bg eofill grestore newpath } bind def
+/p7  { gsave bg eofill grestore stroke } bind def
+/t   { 5 -2 roll moveto gsave rotate
+       1 index stringwidth pop
+       mul neg 0 rmoveto show grestore } bind def
+/ta  { 4 -2 roll moveto gsave rotate show } bind def
+/tb  { 2 -1 roll 0 rmoveto show } bind def
+/cl  { grestore gsave newpath 3 index 3 index moveto 1 index
+       4 -1 roll lineto  exch 1 index lineto lineto
+       closepath clip newpath } bind def
+/rgb { setrgbcolor } bind def
+/s   { scalefont setfont } bind def
+% end   .ps.prolog
+/sRGB { [ /CIEBasedABC
+          << /DecodeLMN
+               [ { dup 0.03928 le
+                        {12.92321 div}
+                        {0.055 add 1.055 div 2.4 exp }
+                     ifelse
+                 } bind dup dup
+               ]
+             /MatrixLMN [0.412457 0.212673 0.019334
+                         0.357576 0.715152 0.119192
+                         0.180437 0.072175 0.950301]
+             /WhitePoint [0.9505 1.0 1.0890]
+           >>
+         ] setcolorspace } bind def
+/srgb { setcolor } bind def
+%%IncludeResource: font Helvetica
+/Helvetica findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding ISOLatin1Encoding def
+  currentdict
+  end
+/Font1 exch definefont pop
+%%IncludeResource: font Helvetica-Bold
+/Helvetica-Bold findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding ISOLatin1Encoding def
+  currentdict
+  end
+/Font2 exch definefont pop
+%%IncludeResource: font Helvetica-Oblique
+/Helvetica-Oblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding ISOLatin1Encoding def
+  currentdict
+  end
+/Font3 exch definefont pop
+%%IncludeResource: font Helvetica-BoldOblique
+/Helvetica-BoldOblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding ISOLatin1Encoding def
+  currentdict
+  end
+/Font4 exch definefont pop
+%%IncludeResource: font Symbol
+/Symbol findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  currentdict
+  end
+/Font5 exch definefont pop
+%%EndProlog
+%%Page: 1 1
+bp
+18.00 18.00 774.00 594.00 cl
+48.24 48.24 743.76 534.96 cl
+/Font1 findfont 12 s
+0 0 0 srgb
+403.58 476.08 (|) .5 0 t
+0.75 setlinewidth
+[] 0 setdash
+1 setlinecap
+1 setlinejoin
+10.00 setmiterlimit
+np
+265.56 385.49 m
+110.41 93.89 l
+55.21 0 l
+110.42 -93.89 l
+o
+np
+127.67 291.60 m
+110.31 93.89 l
+55.16 0 l
+110.31 -93.89 l
+o
+np
+266.80 197.71 m
+109.32 93.89 l
+54.66 0 l
+109.32 -93.89 l
+o
+np
+415.88 103.82 m
+99.38 93.89 l
+49.69 0 l
+99.38 -93.89 l
+o
+292.75 435.61 (Star) 0 ta
+0.480 (t>=8.5) tb gr
+151.47 341.72 (Star) 0 ta
+0.480 (t>=14.5) tb gr
+321.46 249.16 (Age< 55) .5 0 t
+465.57 155.27 (Age>=111) .5 0 t
+460.20 420.64 (Star) 0 ta
+0.480 (t< 8.5) tb gr
+318.78 326.75 (Star) 0 ta
+0.480 (t< 14.5) tb gr
+485.44 234.18 (Age>=55) .5 0 t
+614.64 140.29 (Age< 111) .5 0 t
+/bg { 1 1 1 srgb } def
+np
+ 452.45 479.38 m
+-0.26 2.55 l
+-0.80 2.53 l
+-1.33 2.47 l
+-1.83 2.39 l
+-2.32 2.28 l
+-2.79 2.14 l
+-3.22 1.99 l
+-3.62 1.81 l
+-3.97 1.61 l
+-4.29 1.39 l
+-4.56 1.16 l
+-4.78 0.92 l
+-4.94 0.66 l
+-5.05 0.40 l
+-5.11 0.14 l
+-5.11 -0.14 l
+-5.05 -0.40 l
+-4.95 -0.66 l
+-4.77 -0.92 l
+-4.56 -1.16 l
+-4.29 -1.39 l
+-3.98 -1.61 l
+-3.61 -1.81 l
+-3.22 -1.99 l
+-2.79 -2.14 l
+-2.32 -2.28 l
+-1.84 -2.39 l
+-1.32 -2.47 l
+-0.80 -2.53 l
+-0.27 -2.55 l
+0.27 -2.56 l
+0.80 -2.52 l
+1.32 -2.47 l
+1.84 -2.39 l
+2.32 -2.28 l
+2.79 -2.15 l
+3.22 -1.98 l
+3.61 -1.81 l
+3.98 -1.61 l
+4.29 -1.40 l
+4.56 -1.16 l
+4.77 -0.91 l
+4.95 -0.67 l
+5.05 -0.40 l
+5.11 -0.13 l
+5.11 0.13 l
+5.05 0.40 l
+4.94 0.67 l
+4.78 0.91 l
+4.56 1.16 l
+4.29 1.40 l
+3.97 1.61 l
+3.62 1.81 l
+3.22 1.98 l
+2.79 2.15 l
+2.32 2.28 l
+1.83 2.39 l
+1.33 2.47 l
+0.80 2.52 l
+0.26 2.56 l
+cp p3
+np
+ 314.44 385.49 m
+-0.27 2.55 l
+-0.80 2.53 l
+-1.33 2.47 l
+-1.83 2.39 l
+-2.32 2.28 l
+-2.79 2.14 l
+-3.22 1.99 l
+-3.62 1.81 l
+-3.97 1.61 l
+-4.29 1.39 l
+-4.56 1.16 l
+-4.78 0.92 l
+-4.94 0.66 l
+-5.05 0.40 l
+-5.11 0.14 l
+-5.11 -0.14 l
+-5.05 -0.40 l
+-4.94 -0.66 l
+-4.78 -0.92 l
+-4.56 -1.16 l
+-4.29 -1.39 l
+-3.97 -1.61 l
+-3.62 -1.81 l
+-3.22 -1.99 l
+-2.79 -2.14 l
+-2.32 -2.28 l
+-1.83 -2.39 l
+-1.33 -2.47 l
+-0.80 -2.53 l
+-0.27 -2.55 l
+0.27 -2.56 l
+0.80 -2.52 l
+1.33 -2.47 l
+1.83 -2.39 l
+2.32 -2.28 l
+2.79 -2.15 l
+3.22 -1.98 l
+3.62 -1.81 l
+3.97 -1.61 l
+4.29 -1.39 l
+4.56 -1.17 l
+4.78 -0.91 l
+4.94 -0.66 l
+5.05 -0.40 l
+5.11 -0.14 l
+5.11 0.14 l
+5.05 0.40 l
+4.94 0.66 l
+4.78 0.91 l
+4.56 1.17 l
+4.29 1.39 l
+3.97 1.61 l
+3.62 1.81 l
+3.22 1.98 l
+2.79 2.15 l
+2.32 2.28 l
+1.83 2.39 l
+1.33 2.47 l
+0.80 2.52 l
+0.27 2.56 l
+cp p3
+np
+ 452.33 291.60 m
+-0.27 2.55 l
+-0.80 2.53 l
+-1.32 2.47 l
+-1.84 2.39 l
+-2.32 2.28 l
+-2.79 2.14 l
+-3.21 1.99 l
+-3.62 1.81 l
+-3.98 1.61 l
+-4.29 1.39 l
+-4.56 1.16 l
+-4.77 0.92 l
+-4.94 0.66 l
+-5.06 0.40 l
+-5.11 0.14 l
+-5.11 -0.14 l
+-5.05 -0.40 l
+-4.94 -0.66 l
+-4.78 -0.92 l
+-4.55 -1.16 l
+-4.29 -1.39 l
+-3.98 -1.61 l
+-3.62 -1.81 l
+-3.22 -1.99 l
+-2.78 -2.14 l
+-2.33 -2.28 l
+-1.83 -2.39 l
+-1.32 -2.47 l
+-0.80 -2.53 l
+-0.27 -2.55 l
+0.27 -2.55 l
+0.80 -2.53 l
+1.32 -2.47 l
+1.83 -2.39 l
+2.33 -2.28 l
+2.78 -2.14 l
+3.22 -1.99 l
+3.62 -1.81 l
+3.98 -1.61 l
+4.29 -1.39 l
+4.55 -1.16 l
+4.78 -0.92 l
+4.94 -0.66 l
+5.05 -0.40 l
+5.11 -0.14 l
+5.11 0.14 l
+5.06 0.40 l
+4.94 0.66 l
+4.77 0.92 l
+4.56 1.16 l
+4.29 1.39 l
+3.98 1.61 l
+3.62 1.81 l
+3.21 1.99 l
+2.79 2.14 l
+2.32 2.28 l
+1.84 2.39 l
+1.32 2.47 l
+0.80 2.53 l
+0.27 2.55 l
+cp p3
+np
+ 588.98 197.71 m
+-0.27 2.56 l
+-0.80 2.52 l
+-1.32 2.47 l
+-1.84 2.39 l
+-2.32 2.28 l
+-2.78 2.15 l
+-3.22 1.98 l
+-3.62 1.81 l
+-3.98 1.61 l
+-4.29 1.39 l
+-4.56 1.17 l
+-4.77 0.91 l
+-4.94 0.66 l
+-5.06 0.40 l
+-5.11 0.14 l
+-5.10 -0.14 l
+-5.06 -0.40 l
+-4.94 -0.66 l
+-4.77 -0.91 l
+-4.56 -1.17 l
+-4.29 -1.39 l
+-3.98 -1.61 l
+-3.62 -1.81 l
+-3.22 -1.98 l
+-2.78 -2.15 l
+-2.32 -2.28 l
+-1.84 -2.39 l
+-1.32 -2.47 l
+-0.80 -2.52 l
+-0.27 -2.56 l
+0.27 -2.55 l
+0.80 -2.53 l
+1.32 -2.47 l
+1.84 -2.39 l
+2.32 -2.28 l
+2.78 -2.14 l
+3.22 -1.99 l
+3.62 -1.81 l
+3.98 -1.61 l
+4.29 -1.39 l
+4.56 -1.16 l
+4.77 -0.92 l
+4.94 -0.66 l
+5.06 -0.40 l
+5.10 -0.14 l
+5.11 0.14 l
+5.06 0.40 l
+4.94 0.66 l
+4.77 0.92 l
+4.56 1.16 l
+4.29 1.39 l
+3.98 1.61 l
+3.62 1.81 l
+3.22 1.99 l
+2.78 2.14 l
+2.32 2.28 l
+1.84 2.39 l
+1.32 2.47 l
+0.80 2.53 l
+0.27 2.55 l
+cp p3
+np
+ 162.23 308.88 m
+0 -34.56 l
+-69.12 0 l
+0 34.56 l
+cp p3
+np
+ 301.36 214.99 m
+0 -34.56 l
+-69.12 0 l
+0 34.56 l
+cp p3
+np
+ 450.44 121.10 m
+0 -34.56 l
+-69.12 0 l
+0 34.56 l
+cp p3
+np
+ 698.89 121.10 m
+0 -34.56 l
+-69.12 0 l
+0 34.56 l
+cp p3
+np
+ 576.16 402.77 m
+0 -34.56 l
+-69.12 0 l
+0 34.56 l
+cp p3
+403.58 489.47 (absent ) .5 0 t
+403.58 475.07 (64/17) .5 0 t
+265.56 395.58 (absent ) .5 0 t
+265.56 381.18 (56/6) .5 0 t
+127.67 301.69 (absent ) .5 0 t
+127.67 287.29 (29/0) .5 0 t
+403.45 301.69 (absent ) .5 0 t
+403.45 287.29 (27/6) .5 0 t
+266.80 207.80 (absent ) .5 0 t
+266.80 193.40 (12/0) .5 0 t
+540.10 207.80 (absent ) .5 0 t
+540.10 193.40 (15/6) .5 0 t
+415.88 113.91 (absent ) .5 0 t
+415.88 99.51 (12/2) .5 0 t
+664.33 113.91 (present) .5 0 t
+664.33 99.51 (3/4) .5 0 t
+541.60 395.58 (present) .5 0 t
+541.60 381.18 (8/11) .5 0 t
+18.00 18.00 774.00 594.00 cl
+/Font2 findfont 14 s
+0 0 0 srgb
+289.03 559.45 (Classification T) 0 ta
+-1.120 (ree f) tb
+-0.280 (or K) tb
+-0.560 (yphosis) tb gr
+ep
+%%Trailer
+%%Pages: 1
+%%EOF

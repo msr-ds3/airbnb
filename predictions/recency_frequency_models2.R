@@ -75,7 +75,6 @@ model5 <- lm((log(num_reviews_2016 + 1)) ~ mean_price + min_price + max_price,
 summary(model5)
 #R-squared 0.00522 and adjusted r-squared 0.005162
 
-
 #to create a model with recency frequency + reviews
 #first with frequency in days
 model6 <- lm((log(num_reviews_2016 + 1)) ~ is_superhost_count_2015 + 
