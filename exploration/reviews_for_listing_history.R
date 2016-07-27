@@ -1,6 +1,7 @@
 # Assemble New York review data into dataframe with fields for listing id,
-# text for 2015, first review 2015, last review 2015, first review 2016, and
-# last review 2016
+# text for 2015, first review 2015, last review 2015, first review 2016,
+# last review 2016, num reviews 2015, num reviews as of 2015, num review 2016,
+# num reviews as of 2016, and text for reviews for 2015 and 2016
 
 library(readr)
 library(dplyr)
@@ -38,10 +39,12 @@ tmp_2 <- group_by(reviews, listing_id) %>%
             last_review_2016 = last(date),
             num_reviews_in_2016 = n())
 
+# count number of reviews up until the end of 2015
 tmp_3 <- group_by(reviews, listing_id) %>%
   filter(date <= as.Date("2015-12-31", "%Y-%m-%d")) %>%
   summarize(num_as_of_2015 = n())
 
+# count number of reviews up until the end of 2016
 tmp_4 <- group_by(reviews, listing_id) %>%
   filter(date <= as.Date("2016-12-31", "%Y-%m-%d")) %>%
   summarize(num_as_of_2016 = n())
