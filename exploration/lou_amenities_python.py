@@ -1,7 +1,11 @@
 
 #f = open('amenities_and_id.tsv', 'r+')
 
-grand_amenities = open('unique_amenities.tsv').readlines()
+file_name = 'unique_amenities_grand.tsv' #change these if you want to work on different files
+skinny_table = 'amenities_and_id_grand.tsv'
+#print(skinny_table)
+
+grand_amenities = open(file_name).readlines()
 list_of_amenities = []
 for one_row in grand_amenities[1:len(grand_amenities)]:
     nrow, item = one_row.strip().replace('\"', '').split('\t')
@@ -10,7 +14,7 @@ for one_row in grand_amenities[1:len(grand_amenities)]:
 #print(list_of_amenities) #prints out all unique amenities in airbnb
 #print(len(list_of_amenities)) #43
 
-with open('amenities_and_id.tsv') as f:
+with open(skinny_table) as f:
     listings = f.readlines() #returns the rownum, id, list of amenities for each line
 
 grand_result = []
@@ -21,9 +25,10 @@ print(amenities_string)
 
 
 for listing in listings[1:len(listings)]:
-    rownum, id, amenities = listing.split('\t')
+    rownum, id, amenities, scrape_date = listing.split('\t')
     listings_amenities = amenities.replace('{', '').replace('}', '').replace('\\', '').replace('\"', '').strip().split(',') #strip \n and split it by comma and backslash
     #refactor replacements of {, }, \, "
+    print(listings_amenities)
 
     #entering each amenity item within a listing
     true_false_row = [id] #start off with listing ID at the front
@@ -40,31 +45,3 @@ for listing in listings[1:len(listings)]:
 
     row_string = ",".join(true_false_row)
     print(row_string)
-
-    #grand_result.append(true_false_row)
-#print("========================== length of list_of_amenitites:")
-#print(len(list_of_amenities))
-#print(grand_result)
-
-
-    #print(amenities)
-    #print(len(amenities))
-
-
-#f = open('amenities_and_id.tsv', 'r+')
-
-#lines = f.read().split('\n')
-#print len(lines)
-#f.close()
-#i = 0
-
-#for line in lines:
- # if(i < 2):
- #   print(line)
- # i = i + 1
-
-#['"36608"\t6614094\t"{\\"Wireless Internet\\",\\"Air Conditioning\\",\\"Pets live on this property\\",Dog(s),Heating}"\n'].split(')
-#36609
-
-#distinct rows with non-empty summaries filter(listings, summary != "") %>% distinct(summart) %>% nrow() #33436
-#sapply(listing$summary[1:5], nchar)
