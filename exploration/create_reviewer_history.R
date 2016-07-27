@@ -55,11 +55,7 @@ get_reviewer_data <- function(df, start_month = FALSE, end_month = "2015-12-31",
                                          units = c("weeks")),
               last_month = last(date),
               last_diff_2015 = difftime(last(date), as.Date("2015-12-31"), 
-                                        units = c("weeks")),
-              num_in_2016 = sum(date >= as.Date("2016-01-01", "%Y-%m-%d") 
-                                & date <= as.Date(end_in_2016, "%Y-%m-%d")),
-              all_time_reviews = n(),
-              name = first(reviewer_name))
+                                        units = c("weeks")))
   
   # calculate columns from within specified time period
   tmp_2 <- group_by(df, reviewer_id) %>%
@@ -74,8 +70,16 @@ get_reviewer_data <- function(df, start_month = FALSE, end_month = "2015-12-31",
               last_within_time_period = last(date),
               last_month_within_time_period = month(last(date)))
   
+  tmp_3 <- group_by(df, reviewer_id) %>%
+    summarize(num_in_2016 = sum(date >= as.Date("2016-01-01", "%Y-%m-%d") 
+                                & date <= as.Date(end_in_2016, "%Y-%m-%d")),
+              all_time_reviews = n(),
+              name = first(reviewer_name))
+    
+  
   # join by reviewer id
-  df <- inner_join(tmp_1, tmp_2, by = "reviewer_id")
+  df <- full_join(tmp_1, tmp_2, by = "reviewer_id")
+  df <- full_join(df, tmp_3, by = "reviewer_id")
   
   # rearrange columns
   df[,c("reviewer_id", "name", "first_month", "first_diff_2015", "last_month",
@@ -104,11 +108,15 @@ load("reviewer_data.RData")
 us_reviews <- read_csv("../raw_data/us-reviews.csv")
 us_reviewer_data <- get_reviewer_data(us_reviews, "2015-01-01", "2015-12-31",
                                       "2016-12-31", is_us = TRUE)
+# !!! currently has a lot of NA values due to the inclusion of users who have 
+# not left any reviews within the time period of 2015 and users that appear 
+# starting in 2016
+# users that left reviews before and not in 2015: NA values in all time period fields
+# users that left reviews only in 2016: only reviewer_id, name, all_time_reviews,
+#   and num_in_2016 fields are filled
+
 # save to RData
 save(us_reviews, us_reviewer_data, file = "us_reviewer_data.RData")
 
 # write to csv
 write_csv(us_reviewer_data, path = "../raw_data/us_reviewer_data.csv")
-
-
-
