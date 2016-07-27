@@ -1,10 +1,12 @@
 #install.packages("rpart")
 #install.packages("rpart.plot")
+#install.packages("ROCR")
 
 library(rpart)
 library(rpart.plot)
 library(readr)
 library(dplyr)
+library(ROCR)
 
 #load the listings history dataframe
 
@@ -72,7 +74,7 @@ tree_pruned <- prune(tree, cp = bestcp)
 
 
 #plots
-plot(tree_pruned)
+plot(tree_pruned, uniform = TRUE)
 text(tree_pruned, cex = 0.8, use.n = TRUE, xpd = TRUE)
 
 prp(tree_pruned, faclen = 0, cex = 0.8, extra = 1)
@@ -88,15 +90,29 @@ tot_count <- function(x, labs, digits, varlen)
 
 prp(tree_pruned, faclen = 0, cex = 0.8, node.fun=tot_count)
 
-#to incorporate color
-only_count <- function(x, labs, digits, varlen)
-{
-  paste(x$frame$n)
-}
+#use predict to see the prediction
+sample_predict <- predict(tree_pruned, listings_history_sample)
 
-boxcols <- c("pink", "palegreen3")[tree_pruned$frame$yval]
-#to plot the tree with the colors
-par(xpd=TRUE)
-prp(tree_pruned, faclen = 0, cex = 0.8, node.fun=only_count, box.col = boxcols)
-legend("bottomleft", legend = c("died","survived"), fill = c("pink", "palegreen3"),
-       title = "Group")
+
+## start with recency frequency models
+set.seed(123)
+tree_rf <- rpart(has_reviews_2016 ~ host_listings_count + host_duration + 
+                   first_seen_month + last_seen_month + 
+                   listing_recency_2015_weeks + scrap_duration + 
+                   total_occ_2015 + review_recency_2015_weeks + 
+                   is_superhost_2015 + is_superhost_count_2015, 
+                 data = listings_history_train, 
+                 control = rpart.control(maxdepth = 5))
+printcp(tree_rf)
+bestcp_rf <- tree_rf$cptable[which.min(tree_rf$cptable[,"xerror"]), "CP"]
+#prune tree using best cp
+tree_pruned_rf <- prune(tree_rf, cp = bestcp_rf)
+
+#plots
+plot(tree_pruned_rf, uniform = TRUE)
+text(tree_pruned_rf, cex = 0.8, use.n = TRUE, xpd = TRUE)
+prp(tree_pruned_rf, faclen = 0, cex = 0.8, extra = 1)
+
+#use the tree_pruned_rf to predict on the test set
+tree_predict <- predict(tree_pruned_rf, listings_history_test)
+ROCR_rf <- prediction(tree_predict, listings_history_test$has_reviews_2016)
