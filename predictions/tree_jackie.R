@@ -13,15 +13,6 @@ library(ROCR)
 listings_history <- read_csv("../raw_data/listing_history.csv")
 View(listings_history)
 
-#to remove the duplicate listing_id column
-listings_history[,78] <- NULL
-
-#to replace NA's with False
-listings_history$has_reviews_2016[is.na(listings_history$has_reviews_2016)] <- FALSE
-
-View(listings_history)
-
-
 #create a bare data frame with just what you need for the tree
 listings_history_tree <- listings_history[,3:93]
 listings_history_tree$has_reviews_2016 <- listings_history$has_reviews_2016
@@ -94,7 +85,18 @@ prp(tree_pruned, faclen = 0, cex = 0.8, node.fun=tot_count)
 sample_predict <- predict(tree_pruned, listings_history_sample)
 
 
+
+
+
 ## start with recency frequency models
+
+#create test and train set
+indexes <- sample(1:nrow(listings_history), 
+                  size=0.2*nrow(listings_history))
+listings_history_test=listings_history[indexes, ]
+listings_history_train=listings_history[-indexes, ]
+
+#recency frequency models
 set.seed(123)
 tree_rf <- rpart(has_reviews_2016 ~ host_listings_count + host_duration + 
                    first_seen_month + last_seen_month + 
@@ -114,5 +116,7 @@ text(tree_pruned_rf, cex = 0.8, use.n = TRUE, xpd = TRUE)
 prp(tree_pruned_rf, faclen = 0, cex = 0.8, extra = 1)
 
 #use the tree_pruned_rf to predict on the test set
-tree_predict <- predict(tree_pruned_rf, listings_history_test)
-ROCR_rf <- prediction(tree_predict, listings_history_test$has_reviews_2016)
+rf_predict <- predict(tree_pruned_rf, listings_history_test)
+ROCR_rf <- prediction(rf_predict, listings_history_test$has_reviews_2016)
+roc.perf = performance(ROCR_rf, measure = "tpr", x.measure = "fpr")
+plot(roc.perf)
