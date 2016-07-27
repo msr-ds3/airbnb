@@ -51,6 +51,10 @@ listings_postpurge <- rbind(listings151120, listings1512, listings1601, listings
 multilistings_gone_forever <- anti_join(multilistings1511, listings_postpurge, by = 'id')
 nrow(multilistings_gone_forever) #1324
 View(multilistings_gone_forever)
+
+write_csv(multilistings_gone_forever, 'multilistings_gone_forever.csv')
+
+# skinny listing (just for viewing visually)
 skinny <- select(multilistings_gone_forever, id, host_id, room_type, host_listings_count, price, reviews_per_month,
             minimum_nights, review_scores_rating, requires_license, 
             host_identity_verified, neighbourhood_cleansed, property_type)
