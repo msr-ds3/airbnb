@@ -352,10 +352,10 @@ listings_history_januarycohort <- listings_history %>% filter(first_seen_month =
 View(listings_history_januarycohort)
 
 #create a test and train set for the january cohort
-jan_indexes <- sample(1:nrow(listings_history_januarycohort), 
+jan_indexes2 <- sample(1:nrow(listings_history_januarycohort), 
                   size=0.2*nrow(listings_history_januarycohort))
-listings_history_test_jan=listings_history_januarycohort[jan_indexes, ]
-listings_history_train_jan=listings_history_januarycohort[-jan_indexes, ]
+listings_history_test_jan2=listings_history_januarycohort[jan_indexes2, ]
+listings_history_train_jan2=listings_history_januarycohort[-jan_indexes2, ]
 
 #recency frequency models
 set.seed(123)
@@ -608,7 +608,7 @@ jan_auc@y.values
 #0.9115
 
 #added in all ammenities
-jan_tree_amen <- rpart(has_reviews_2016 ~ TV + Internet + Wireless.Internet +
+jan_tree_amen <- rpart(exist_in_2016 ~ TV + Internet + Wireless.Internet +
                          Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
                          Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
                          Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
@@ -624,15 +624,13 @@ jan_tree_amen <- rpart(has_reviews_2016 ~ TV + Internet + Wireless.Internet +
                          translation.missing..en.hosting_amenity_50 + 
                          host_listings_count + host_duration + 
                          first_seen_month + last_seen_month + 
-                         listing_recency_2015_weeks + scrap_duration + 
-                         total_occ_2015 + review_recency_2015_weeks + 
-                         is_superhost_2015 + is_superhost_count_2015 + 
+                    is_superhost_2015 + is_superhost_count_2015 + 
                          first_review_year + last_review_year +
                          num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
                          first_review_month_2015 + last_review_month_2015 + 
-                         last_rating + mean_price + max_price + min_price , 
-                  data = listings_history_train_jan, 
-                  control = rpart.control(maxdepth = 5))
+                         last_rating + mean_price + max_price + min_price +room_type , 
+                  data = listings_history_train_jan2, 
+                  control = rpart.control(cp = 0.001))
 printcp(jan_tree_amen)
 jan_amen_bestcp <- jan_tree_amen$cptable[which.min(jan_tree_amen$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -644,8 +642,8 @@ text(jan_amen_tree_pruned, cex = 0.8, use.n = TRUE, xpd = TRUE)
 prp(jan_amen_tree_pruned, faclen = 0, cex = 0.8, extra = 1)
 
 #use the tree_pruned_rf to predict on the test set
-jan_amen_predict <- predict(jan_amen_tree_pruned, listings_history_test_jan)
-jan_amen_ROCR <- prediction(jan_amen_predict, listings_history_test_jan$has_reviews_2016)
+jan_amen_predict <- predict(jan_amen_tree_pruned, test)
+jan_amen_ROCR <- prediction(jan_amen_predict, test$exist_in_2016)
 jan_amen_roc_perf <- performance(jan_amen_ROCR, measure = "tpr", x.measure = "fpr")
 #plot the ROC curve
 plot(jan_amen_roc_perf)
@@ -711,3 +709,38 @@ abline(a=0, b= 1)
 jan_ver_auc <- performance(jan_ver_ROCR, measure = "auc")
 jan_ver_auc@y.values
 #0.9115
+
+
+##FINALIZED with amenities and RF, reviews and price
+jan_tree_amen <- rpart(has_reviews_2016 ~ TV + Internet + Wireless.Internet +
+Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
+Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
+Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
+Pets.live.on.this.property + Dog.s. + First.Aid.Kit + 
+Buzzer.Wireless.Intercom + Washer + Dryer + Pets.Allowed + 
+Gym + Safety.Card + Fire.Extinguisher + Wheelchair.Accessible +
+Cat.s. + Indoor.Fireplace + Suitable.for.Events + Doorman + 
+Hot.Tub + Elevator.in.Building + Pool + Smoking.Allowed + 
+Other.pet.s. + Washer...Dryer + Lock.on.Bedroom.Door + 
+X24.Hour.Check.in + Hangers + Hair.Dryer + Iron + 
+Laptop.Friendly.Workspace + 
+translation.missing..en.hosting_amenity_49 + 
+translation.missing..en.hosting_amenity_50 + 
+host_listings_count + host_duration + 
+first_seen_month + last_seen_month + 
+listing_recency_2015_weeks + scrap_duration + 
+total_occ_2015 + review_recency_2015_weeks + 
+is_superhost_2015 + is_superhost_count_2015 + 
+first_review_year + last_review_year +
+num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+first_review_month_2015 + last_review_month_2015 + 
+last_rating + mean_price + max_price + min_price +room_type , 
+data = train, 
+control = rpart.control(cp = 0.001))
+
+#predict purged and not purged -- remove the features that we chose the dependent variable on
+#add in multilistings and purged (join)
+#isolate all this with reviews and price, [put rpart.control(cp=0.001)]
+
+#pick on listing/host (each host is a customer -- do they return?)
+#for the hosts that have multiple listings -- randomly pick one
