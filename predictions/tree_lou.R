@@ -20,7 +20,16 @@ indexes <- sample(1:nrow(listings_history),
 listings_history_test=listings_history[indexes, ]
 listings_history_train=listings_history[-indexes, ]
 
-
+############################################################# [ functions ]
+# plot pruned tree, with some hardcoded assumptions
+plot_decision_tree <- function(tree_model){
+  bestcp <- tree_model$cptable[which.min(tree_model$cptable[,"xerror"]), "CP"]
+  tree_model_pruned <- prune(tree_model, cp = bestcp) # prune tree using best cp
+  #plot
+  plot(tree_model_pruned, uniform = TRUE) 
+  text(tree_model_pruned, cex = 0.8, use.n = TRUE, xpd = TRUE)
+  prp(tree_model_pruned, faclen = 0, cex = 0.8, extra = 1)
+}
 ############################################################# [ exists_in_2016 ~ recency frequency (RF) ]
 # model
 tree_rf <- rpart(exist_in_2016 ~ host_listings_count + host_duration + 
@@ -31,15 +40,21 @@ tree_rf <- rpart(exist_in_2016 ~ host_listings_count + host_duration +
                  data = listings_history_train, 
                  control = rpart.control(maxdepth = 5))
 
-summary(listings_history$exist_in_2016)
-
 printcp(tree_rf) #summary
-bestcp_rf <- tree_rf$cptable[which.min(tree_rf$cptable[,"xerror"]), "CP"]
 
-# prune tree using best cp
-tree_pruned_rf <- prune(tree_rf, cp = bestcp_rf)
+# draw
+plot_decision_tree(tree_rf)
 
-# plots
-plot(tree_pruned_rf, uniform = TRUE)
-text(tree_pruned_rf, cex = 0.8, use.n = TRUE, xpd = TRUE)
-prp(tree_pruned_rf, faclen = 0, cex = 0.8, extra = 1)
+############################################################# [ exists_in_2016 ~ reviews (RV) ]
+# model
+tree_rv <- rpart(exist_in_2016 ~ first_review_year + last_review_year +
+                   num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                   first_review_month_2015 + last_review_month_2015 + 
+                   review_recency_2015_weeks + last_rating, 
+                 data = listings_history_train, 
+                 control = rpart.control(maxdepth = 5))
+
+printcp(tree_rv)
+
+# draw
+plot_decision_tree(tree_rv)
