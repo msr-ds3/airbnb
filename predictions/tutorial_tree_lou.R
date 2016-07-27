@@ -7,32 +7,8 @@ library(rpart)
 library(rpart.plot)
 
 listings_history <- read_csv("../raw_data/2015-12-02-listings.csv")
-
-# grow tree
-fit <- rpart(Kyphosis ~ Age + Number + Start,
-             method="class", data=kyphosis)
-
-printcp(fit) #display results
-plotcp(fit) #visualize cross-validation results
-summary(fit) #detailed summary of splits
-
-# prune tree
-pfit <- prune(fit, cp=
-                fit$cptable[which.min(fit$cptable[,"xerror"]), "CP"])
-
-# create attractive postscript plot of tree
-post(fit, file = "tree.ps",
-     title = "Classification Tree for Kyphosis")
-
-# plot the pruned tree
-plot(pfit, uniform=TRUE,
-     main="Pruned Classification Tree for Kyphosis")
-
-text(pfit, use.n=TRUE, all=TRUE, cex=.8)
-
-##############################################
-
-# Rpubs, Titanic Data
+#############################################
+# [ Rpubs, Titanic Data tutorial ]
 data(ptitanic)
 str(ptitanic)
 
@@ -73,3 +49,29 @@ par(xpd=TRUE)
 prp(tree.pruned, faclen = 0, cex = 0.8, node.fun=only_count, box.col = boxcols)
 legend("bottomleft", legend = c("died","survived"), fill = c("pink", "palegreen3"),
        title = "Group")
+
+
+#############################################
+# grow tree
+fit <- rpart(Kyphosis ~ Age + Number + Start,
+             method="class", data=kyphosis)
+
+printcp(fit) #display results
+plotcp(fit) #visualize cross-validation results
+summary(fit) #detailed summary of splits
+
+# prune tree
+pfit <- prune(fit, cp=
+                fit$cptable[which.min(fit$cptable[,"xerror"]), "CP"])
+
+# create attractive postscript plot of tree
+post(fit, file = "tree.ps",
+     title = "Classification Tree for Kyphosis")
+
+# plot the pruned tree
+plot(pfit, uniform=TRUE,
+     main="Pruned Classification Tree for Kyphosis")
+
+text(pfit, use.n=TRUE, all=TRUE, cex=.8)
+
+##############################################
