@@ -42,7 +42,7 @@ tree_rf <- rpart(exist_in_2016 ~ host_listings_count + host_duration +
 
 printcp(tree_rf) #summary
 
-# draw
+# plot 
 plot_decision_tree(tree_rf)
 
 ############################################################# [ exists_in_2016 ~ reviews (RV) ]
@@ -54,7 +54,71 @@ tree_rv <- rpart(exist_in_2016 ~ first_review_year + last_review_year +
                  data = listings_history_train, 
                  control = rpart.control(maxdepth = 5))
 
-printcp(tree_rv)
-
-# draw
+# plot
 plot_decision_tree(tree_rv)
+
+############################################################# [ exists_in_2016 ~ price (P) ]
+# model
+tree_p <- rpart(exist_in_2016 ~ min_price + max_price + mean_price, 
+                data = listings_history_train, 
+                control = rpart.control(maxdepth = 5))
+
+# plot
+plot_decision_tree(tree_p) #Fail: fit is not a tree, just a root
+
+############################################################# [ exists_in_2016 ~ RF + RV ] 
+tree_rf_rv <- rpart(exist_in_2016 ~ host_listings_count + host_duration + 
+                      first_seen_month + last_seen_month + 
+                      listing_recency_2015_weeks + scrap_duration + 
+                      total_occ_2015 + review_recency_2015_weeks + 
+                      is_superhost_2015 + is_superhost_count_2015 + 
+                      first_review_year + last_review_year +
+                      num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                      first_review_month_2015 + last_review_month_2015 + 
+                      last_rating, 
+                    data = listings_history_train, 
+                    control = rpart.control(maxdepth = 5))
+
+# plot
+plot_decision_tree(tree_rf_rv) #nothing changes!
+
+############################################################# [ exists_in_2016 ~ RF + P ] 
+tree_rf_p <- rpart(exist_in_2016 ~ host_listings_count + host_duration + 
+                     first_seen_month + last_seen_month + 
+                     listing_recency_2015_weeks + scrap_duration + 
+                     total_occ_2015 + review_recency_2015_weeks + 
+                     is_superhost_2015 + is_superhost_count_2015 + 
+                     min_price + max_price + mean_price, 
+                   data = listings_history_train, 
+                   control = rpart.control(maxdepth = 5))
+# plot
+plot_decision_tree(tree_rf_p) #nothing changes again!
+
+############################################################# [ exists_in_2016 ~ RV + P ] 
+tree_rv_p <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
+                     num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                     first_review_month_2015 + last_review_month_2015 + 
+                     review_recency_2015_weeks + last_rating + min_price + 
+                     max_price + mean_price, 
+                   data = listings_history_train, 
+                   control = rpart.control(maxdepth = 5))
+
+# plot
+plot_decision_tree(tree_rv_p) # not that great
+
+############################################################# [ exists_in_2016 ~ RF + RV + P ] 
+tree_rf_rv_p <- rpart(exist_in_2016 ~ host_listings_count + host_duration + 
+                        first_seen_month + last_seen_month + 
+                        listing_recency_2015_weeks + scrap_duration + 
+                        total_occ_2015 + review_recency_2015_weeks + 
+                        is_superhost_2015 + is_superhost_count_2015 + 
+                        first_review_year + last_review_year +
+                        num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                        first_review_month_2015 + last_review_month_2015 + 
+                        last_rating + mean_price + max_price + min_price, 
+                      data = listings_history_train, 
+                      control = rpart.control(maxdepth = 5))
+
+# plot
+plot_decision_tree(tree_rf_rv_p) # not that great
+
