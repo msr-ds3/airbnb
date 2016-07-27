@@ -85,4 +85,117 @@ model2 <- lm(num_in_2016 ~ last_month_in_2015 + num_in_2015, data = rev_data)
 # !!! ^ roughly half were removed due to missingness
 
 # decision tree(s)
+library(rpart)
+library(rpart.plot)
 
+set.seed(123)
+indexes <- sample(1:nrow(rev_data), size=0.2*nrow(rev_data))
+rev_test=rev_data[indexes, ]
+rev_train=rev_data[-indexes, ]
+
+# modeling for num in 2016
+fit1 <- rpart(num_in_2016 ~ last_month_in_2015 + num_in_2015,
+             data = rev_train, method = "anova")
+
+plot(fit1)
+text(fit1)
+rpart.plot(fit1)
+printcp(fit1)
+# Regression tree:
+#   rpart(formula = num_in_2016 ~ last_month_in_2015 + num_in_2015, 
+#         data = rev_train, method = "anova")
+# 
+# Variables actually used in tree construction:
+#   [1] num_in_2015
+# 
+# Root node error: 547787/1255464 = 0.43632
+# 
+# n=1255464 (1145702 observations deleted due to missingness)
+# 
+# CP nsplit rel error  xerror      xstd
+# 1 0.033877      0   1.00000 1.00000 0.0103437
+# 2 0.013978      1   0.96612 0.96613 0.0099477
+# 3 0.010000      2   0.95215 0.95281 0.0094415
+
+bestcp1 <- fit1$cptable[which.min(fit1$cptable[,"xerror"]), "CP"]
+
+#prune tree using best cp
+tree_pruned1 <- prune(fit1, cp = bestcp)
+
+plot(tree_pruned1, uniform = TRUE)
+text(tree_pruned1, cex = 0.8, use.n = TRUE, xpd = TRUE)
+
+prp(tree_pruned1, faclen = 0, cex = 0.8, extra = 1)
+
+tot_count <- function(x, labs, digits, varlen)
+{
+  paste(labs, "\n\nn =", x$frame$n)
+}
+
+prp(tree_pruned1, faclen = 0, cex = 0.8, node.fun=tot_count)
+
+#use predict to see the prediction
+sample_predict1 <- predict(tree_pruned1, rev_train)
+
+ROCR1 <- prediction(sample_predict1, rev_train$num_in_2015) # error
+# comparing to itself for now, error rev_test is shorter than rev_train
+roc.perf1 = performance(ROCR1, measure = "tpr", x.measure = "fpr")
+plot(roc.perf1)
+
+# with every feature, still only uses num_in_2015
+fit1a <- rpart(num_in_2016 ~ first_month + first_diff_2015 + last_month + 
+                 last_diff_2015 + first_in_2015 + first_month_in_2015 + 
+                 last_in_2015 + last_month_in_2015 + num_in_2015,
+              data = rev_train, method = "anova")
+
+rpart.plot(fit1a)
+plot(fit1a)
+text(fit1a)
+
+# modeling for has review 2016
+fit2 <- rpart(has_review_2016 ~ last_month_in_2015 + num_in_2015 + last_diff_2015,
+             data = rev_train, control = rpart.control(maxdepth = 5))
+
+plot(fit2)
+text(fit2)
+rpart.plot(fit2)
+printcp(fit2)
+# Regression tree:
+#   rpart(formula = has_review_2016 ~ last_month_in_2015 + num_in_2015 + 
+#           last_diff_2015, data = rev_train, control = rpart.control(maxdepth = 5))
+# 
+# Variables actually used in tree construction:
+#   [1] num_in_2015
+# 
+# Root node error: 190387/1815250 = 0.10488
+# 
+# n=1815250 (585916 observations deleted due to missingness)
+# 
+# CP nsplit rel error  xerror      xstd
+# 1 0.026848      0   1.00000 1.00000 0.0017461
+# 2 0.010000      1   0.97315 0.97315 0.0016852
+
+bestcp2 <- fit2$cptable[which.min(fit2$cptable[,"xerror"]), "CP"]
+
+#prune tree using best cp
+tree_pruned2 <- prune(fit2, cp = bestcp)
+
+plot(tree_pruned2, uniform = TRUE)
+text(tree_pruned2, cex = 0.8, use.n = TRUE, xpd = TRUE)
+
+prp(tree_pruned2, faclen = 0, cex = 0.8, extra = 1)
+
+tot_count <- function(x, labs, digits, varlen) {
+  paste(labs, "\n\nn =", x$frame$n)
+}
+
+prp(tree_pruned2, faclen = 0, cex = 0.8, node.fun=tot_count)
+
+#use predict to see the prediction
+sample_predict2 <- predict(tree_pruned2, rev_train)
+
+ROCR2 <- prediction(sample_predict2, rev_test$has_review_2016) 
+# comparing to itself for now, error rev_test is shorter than rev_train
+roc.perf2 = performance(ROCR2, measure = "tpr", x.measure = "fpr")
+performance(ROCR2, measure = "auc")
+plot(roc.perf2)
