@@ -29,14 +29,20 @@ tree_pruned_rv <- prune(tree_rv, cp = bestcp_rv)
 #plots
 plot(tree_pruned_rv, uniform = TRUE)
 text(tree_pruned_rv, cex = 0.8, use.n = TRUE, xpd = TRUE)
-prp(tree_pruned_rv, faclen = 0, cex = 0.8, extra = 1)
+png(file = "../figures/reviews2016_jan_rv.png")
+prp(tree_pruned_rv, main = "Predicting Reviews in 2016 for January Cohort
+    Using Reviews", faclen = 0, cex = 0.8, extra = 1)
+dev.off()
 
 #use the tree_pruned_rf to predict on the test set
 rv_predict <- predict(tree_pruned_rv, jan_test)
 ROCR_rv <- prediction(rv_predict, jan_test$has_reviews_2016)
 roc_perf_rv <- performance(ROCR_rv, measure = "tpr", x.measure = "fpr")
-plot(roc_perf_rv)
+png(file = "../figures/reviews2016_jan_rv_ROC.png")
+plot(roc_perf_rv, main = "ROC Predicting Reviews in 2016 for January Cohort Using
+     Reviews", sub = "AUC = 0.914")
 abline(a=0, b= 1)
+dev.off()
 auc_rv <- performance(ROCR_rv, measure = "auc")
 auc_rv@y.values
 #0.91399

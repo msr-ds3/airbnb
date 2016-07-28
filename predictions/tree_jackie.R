@@ -394,8 +394,8 @@ jan_tree_rv <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                    num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
                    first_review_month_2015 + last_review_month_2015 + 
                    review_recency_2015_weeks + last_rating, 
-                 data = listings_history_train_jan, 
-                 control = rpart.control(maxdepth = 5))
+                 data = jan_train, 
+                 control = rpart.control(cp = 0.001))
 printcp(jan_tree_rv)
 jan_bestcp_rv <- jan_tree_rv$cptable[which.min(jan_tree_rv$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -404,6 +404,7 @@ jan_tree_pruned_rv <- prune(tree_rv, cp = bestcp_rv)
 #plots
 plot(jan_tree_pruned_rv, uniform = TRUE)
 text(jan_tree_pruned_rv, cex = 0.8, use.n = TRUE, xpd = TRUE)
+
 prp(jan_tree_pruned_rv, faclen = 0, cex = 0.8, extra = 1)
 
 #use the tree_pruned_rf to predict on the test set

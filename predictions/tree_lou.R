@@ -198,3 +198,174 @@ plot_roc_curve(tree_rf_rv_p)
 # ROC area
 roc_area(tree_rf_rv_p) # 0.7898419
 
+################################################## [exists in 2016 ~ amenities]
+tree_amen <- rpart(exist_in_2016 ~ TV + Internet + Wireless.Internet +
+                     Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
+                     Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
+                     Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
+                     Pets.live.on.this.property + Dog.s. + First.Aid.Kit + 
+                     Buzzer.Wireless.Intercom + Washer + Dryer + Pets.Allowed + 
+                     Gym + Safety.Card + Fire.Extinguisher + Wheelchair.Accessible +
+                     Cat.s. + Indoor.Fireplace + Suitable.for.Events + Doorman + 
+                     Hot.Tub + Elevator.in.Building + Pool + Smoking.Allowed + 
+                     Other.pet.s. + Washer...Dryer + Lock.on.Bedroom.Door + 
+                     X24.Hour.Check.in + Hangers + Hair.Dryer + Iron + 
+                     Laptop.Friendly.Workspace + 
+                     translation.missing..en.hosting_amenity_49 + 
+                     translation.missing..en.hosting_amenity_50, 
+                      data = listings_history_train, 
+                      control = rpart.control(cp  = 0.001))
+
+# tree
+plot_decision_tree(tree_amen) 
+
+# ROC curve
+plot_roc_curve(tree_amen)
+
+# ROC area
+roc_area(tree_amen) # 0.727
+
+################################################## [exists in 2016 ~ reviews + 
+#amenities]
+
+tree_amen_rv <- rpart(exist_in_2016 ~ TV + Internet + Wireless.Internet +
+                     Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
+                     Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
+                     Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
+                     Pets.live.on.this.property + Dog.s. + First.Aid.Kit + 
+                     Buzzer.Wireless.Intercom + Washer + Dryer + Pets.Allowed + 
+                     Gym + Safety.Card + Fire.Extinguisher + Wheelchair.Accessible +
+                     Cat.s. + Indoor.Fireplace + Suitable.for.Events + Doorman + 
+                     Hot.Tub + Elevator.in.Building + Pool + Smoking.Allowed + 
+                     Other.pet.s. + Washer...Dryer + Lock.on.Bedroom.Door + 
+                     X24.Hour.Check.in + Hangers + Hair.Dryer + Iron + 
+                     Laptop.Friendly.Workspace + 
+                     translation.missing..en.hosting_amenity_49 + 
+                     translation.missing..en.hosting_amenity_50 + 
+                       first_review_year + last_review_year +
+                       num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                       first_review_month_2015 + last_review_month_2015 + 
+                       review_recency_2015_weeks + last_rating, 
+                   data = listings_history_train, 
+                   control = rpart.control(cp  = 0.001))
+
+# tree
+plot_decision_tree(tree_amen_rv) 
+
+# ROC curve
+plot_roc_curve(tree_amen_rv)
+
+# ROC area
+roc_area(tree_amen_rv) # 0.894
+
+################################################## [exists in 2016 ~ verifications]
+
+tree_ver <- rpart(exist_in_2016 ~ email + phone +
+  facebook + reviews + kba + google + jumio + sent_id + 
+  linkedin +
+  manual_offline + manual_online + weibo + photographer + 
+  None +
+  amex + verifications_count + room_type, 
+  data = listings_history_train, 
+  control = rpart.control(cp  = 0.001))
+
+# tree
+plot_decision_tree(tree_ver) 
+
+# ROC curve
+plot_roc_curve(tree_ver)
+
+# ROC area
+roc_area(tree_ver) # 0.704
+  
+################################################## [exists in 2016 ~ reviews + 
+#amenities + verifications]
+
+tree_amen_rv_ver <- rpart(exist_in_2016 ~ TV + Internet + Wireless.Internet +
+                        Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
+                        Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
+                        Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
+                        Pets.live.on.this.property + Dog.s. + First.Aid.Kit + 
+                        Buzzer.Wireless.Intercom + Washer + Dryer + Pets.Allowed + 
+                        Gym + Safety.Card + Fire.Extinguisher + Wheelchair.Accessible +
+                        Cat.s. + Indoor.Fireplace + Suitable.for.Events + Doorman + 
+                        Hot.Tub + Elevator.in.Building + Pool + Smoking.Allowed + 
+                        Other.pet.s. + Washer...Dryer + Lock.on.Bedroom.Door + 
+                        X24.Hour.Check.in + Hangers + Hair.Dryer + Iron + 
+                        Laptop.Friendly.Workspace + 
+                        translation.missing..en.hosting_amenity_49 + 
+                        translation.missing..en.hosting_amenity_50 + 
+                        first_review_year + last_review_year +
+                        num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                        first_review_month_2015 + last_review_month_2015 + 
+                        review_recency_2015_weeks + last_rating + email + phone +
+                        facebook + reviews + kba + google + jumio + sent_id + 
+                        linkedin +
+                        manual_offline + manual_online + weibo + photographer + 
+                        None +
+                        amex + verifications_count + room_type, 
+                      data = listings_history_train, 
+                      control = rpart.control(cp  = 0.001))
+
+# tree
+plot_decision_tree(tree_amen_rv_ver) 
+
+# ROC curve
+plot_roc_curve(tree_amen_rv_ver)
+
+# ROC area
+roc_area(tree_amen_rv_ver) # 0.897
+
+################################################## [exists in 2016 ~ place_features]
+
+tree_place <- rpart(exist_in_2016 ~ room_type + is_multilisting, 
+                  data = listings_history_train, 
+                  control = rpart.control(cp  = 0.001))
+
+# tree
+plot_decision_tree(tree_place) 
+
+# ROC curve
+plot_roc_curve(tree_place)
+
+# ROC area
+roc_area(tree_place) # 0.537
+
+################################################## [exists in 2016 ~ reviews + 
+#amenities + verifications + place]
+
+tree_amen_rv_ver_place <- rpart(exist_in_2016 ~ TV + Internet + Wireless.Internet +
+                            Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
+                            Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
+                            Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
+                            Pets.live.on.this.property + Dog.s. + First.Aid.Kit + 
+                            Buzzer.Wireless.Intercom + Washer + Dryer + Pets.Allowed + 
+                            Gym + Safety.Card + Fire.Extinguisher + Wheelchair.Accessible +
+                            Cat.s. + Indoor.Fireplace + Suitable.for.Events + Doorman + 
+                            Hot.Tub + Elevator.in.Building + Pool + Smoking.Allowed + 
+                            Other.pet.s. + Washer...Dryer + Lock.on.Bedroom.Door + 
+                            X24.Hour.Check.in + Hangers + Hair.Dryer + Iron + 
+                            Laptop.Friendly.Workspace + 
+                            translation.missing..en.hosting_amenity_49 + 
+                            translation.missing..en.hosting_amenity_50 + 
+                            first_review_year + last_review_year +
+                            num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                            first_review_month_2015 + last_review_month_2015 + 
+                            review_recency_2015_weeks + last_rating + email + phone +
+                            facebook + reviews + kba + google + jumio + sent_id + 
+                            linkedin +
+                            manual_offline + manual_online + weibo + photographer + 
+                            None +
+                            amex + verifications_count + room_type + room_type + 
+                            is_multilisting, 
+                          data = listings_history_train, 
+                          control = rpart.control(cp  = 0.001))
+
+# tree
+plot_decision_tree(tree_amen_rv_ver_place) 
+
+# ROC curve
+plot_roc_curve(tree_amen_rv_ver_place)
+
+# ROC area
+roc_area(tree_amen_rv_ver) # 0.897
