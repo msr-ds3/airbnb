@@ -10,6 +10,7 @@ library(dplyr)
 library(ROCR)
 
 #load the test and train data
+#this file was created by  "create_test_train.R"
 load("test_train.RData")
 
 set.seed(123)
@@ -21,7 +22,7 @@ tree_rf <- rpart(has_reviews_2016 ~ host_listings_count + host_duration +
                    total_occ_2015 + review_recency_2015_weeks + 
                    is_superhost_2015 + is_superhost_count_2015, 
                  data = train, 
-                 control = rpart.control(max.depth = 0.001))
+                 control = rpart.control(cp = 0.001))
 
 #view the tree
 printcp(tree_rf)
@@ -49,7 +50,7 @@ abline(a=0, b= 1)
 #find the area under the roc curve
 auc_rf <- performance(ROCR_rf, measure = "auc")
 auc_rf@y.values
-#0.88365
+#0.898956
 
 #add in additional features
 
@@ -83,7 +84,7 @@ tree_all <- rpart(has_reviews_2016 ~  TV + Internet + Wireless.Internet +
                     None +
                     amex + verifications_count, 
                   data = train, 
-                  control = rpart.control(max.depth = 0.001))
+                  control = rpart.control(cp = 0.001))
 printcp(tree_all)
 bestcp_all <- tree_all$cptable[which.min(tree_all$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -104,7 +105,7 @@ abline(a=0, b= 1)
 #find the area under the roc curve
 auc_all <- performance(ROCR_all, measure = "auc")
 auc_all@y.values
-#0.895032
+#0.9184938
 
 #just using the amenities, recency frequency, reviews, and price
 tree <- rpart(has_reviews_2016 ~ TV + Internet + Wireless.Internet +
