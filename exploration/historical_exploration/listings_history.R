@@ -369,3 +369,13 @@ summary(listings_history$purged) #checking for no NAs. Should have 1,324 TRUE
 write_csv(listings_history, "listing_history.csv") #writing file
 
 colnames(listings_history)[104]
+
+###### words #####
+word_features <- purged_listings <- read_csv("../../raw_data/word_features.csv")
+
+colnames(listings_history) #check that this is the most recent version: should have "purged"
+
+listings_history <- left_join(listings_history, word_features, by="listing_id") #join. Should have 205 columns! Ahh!
+
+write_csv(listings_history, "../../raw_data/listing_history.csv") #writing file
+
