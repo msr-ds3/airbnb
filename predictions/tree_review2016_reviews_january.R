@@ -1,7 +1,6 @@
 #to create and generate the tree for if there was a review or not in 2016
 #for the Januray cohort and generate the ROC curve
-#using review data 
-#then adding in price, ammenities, verifications, and room type
+#using price, ammenities, verifications, and room type
 
 library(rpart)
 library(rpart.plot)
@@ -19,7 +18,7 @@ set.seed(123)
 tree_rv <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                    num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
                    first_review_month_2015 + last_review_month_2015 + 
-                   review_recency_2015_weeks + last_rating, 
+                   last_rating, 
                  data = jan_train, 
                  control = rpart.control(cp = 0.001))
 printcp(tree_rv)
@@ -40,13 +39,13 @@ plot(roc_perf_rv)
 abline(a=0, b= 1)
 auc_rv <- performance(ROCR_rv, measure = "auc")
 auc_rv@y.values
-#0.91037
+#0.91399
 
 #add in price to reviews
 tree_rv_p <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                      num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
                      first_review_month_2015 + last_review_month_2015 + 
-                     review_recency_2015_weeks + last_rating + min_price + 
+                     last_rating + min_price + 
                      max_price + mean_price, 
                    data = jan_train, 
                    control = rpart.control(cp = 0.001))
@@ -68,13 +67,10 @@ plot(roc_perf_rv_p)
 abline(a=0, b= 1)
 auc_rv_p <- performance(ROCR_rv_p, measure = "auc")
 auc_rv_p@y.values
-#0.9103707
+#0.91399
 
 #add in ammenities, verification, and room type
-tree_all <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
-                    num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
-                    first_review_month_2015 + last_review_month_2015 + 
-                    review_recency_2015_weeks + last_rating + min_price + 
+tree_all <- rpart(has_reviews_2016 ~ min_price + 
                     max_price + mean_price + TV + Internet + Wireless.Internet +
                     Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
                     Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
@@ -95,7 +91,7 @@ tree_all <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                     None +
                     amex + verifications_count + room_type, 
                   data = jan_train, 
-                  control = rpart.control(cp = 0.001))
+                  control = rpart.control(cp = 0.01))
 printcp(tree_all)
 bestcp_all<- tree_all$cptable[which.min(tree_all$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -114,13 +110,13 @@ plot(roc_perf_all)
 abline(a=0, b= 1)
 auc_all <- performance(ROCR_all, measure = "auc")
 auc_all@y.values
-#0.923916
+#0.9420252
 
 #just using the amenities, reviews, and price
 tree <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                 num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
                 first_review_month_2015 + last_review_month_2015 + 
-                review_recency_2015_weeks + last_rating + min_price + 
+                last_rating + min_price + 
                 max_price + mean_price + TV + Internet + Wireless.Internet +
                 Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
                 Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
@@ -155,4 +151,4 @@ plot(roc_perf)
 abline(a=0, b= 1)
 auc <- performance(ROCR_tree, measure = "auc")
 auc@y.values
-#0.93016
+#0.9349107
