@@ -124,3 +124,5 @@ dev.off()
 auc_all <- performance(ROCR_all, measure = "auc")
 auc_all@y.values
 #0.7353522
+
+
