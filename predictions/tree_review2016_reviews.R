@@ -10,6 +10,8 @@ library(dplyr)
 library(ROCR)
 
 #load the test and train data
+#this file was created by  "create_test_train.R"
+
 load("test_train.RData")
 
 set.seed(123)
@@ -20,7 +22,7 @@ tree_rv <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                    first_review_month_2015 + last_review_month_2015 + 
                    review_recency_2015_weeks + last_rating, 
                  data = train, 
-                 control = rpart.control(max.depth = 0.001))
+                 control = rpart.control(cp = 0.001))
 printcp(tree_rv)
 bestcp_rv <- tree_rv$cptable[which.min(tree_rv$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -39,7 +41,7 @@ plot(roc_perf_rv)
 abline(a=0, b= 1)
 auc_rv <- performance(ROCR_rv, measure = "auc")
 auc_rv@y.values
-#0.8488
+#0.8623
 
 #add in price to reviews
 tree_rv_p <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
@@ -48,7 +50,7 @@ tree_rv_p <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                      review_recency_2015_weeks + last_rating + min_price + 
                      max_price + mean_price, 
                    data = train, 
-                   control = rpart.control(max.depth = 0.001))
+                   control = rpart.control(cp = 0.001))
 printcp(tree_rv_p)
 bestcp_rv_p<- tree_rv_p$cptable[which.min(tree_rv_p$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -67,7 +69,7 @@ plot(roc_perf_rv_p)
 abline(a=0, b= 1)
 auc_rv_p <- performance(ROCR_rv_p, measure = "auc")
 auc_rv_p@y.values
-#0.8488352
+#0.8623775
 
 #add in ammenities, verification, and room type
 tree_all <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
@@ -94,7 +96,7 @@ tree_all <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                      None +
                      amex + verifications_count + room_type, 
                    data = train, 
-                   control = rpart.control(max.depth = 0.001))
+                   control = rpart.control(cp = 0.001))
 printcp(tree_all)
 bestcp_all<- tree_all$cptable[which.min(tree_all$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -113,7 +115,7 @@ plot(roc_perf_all)
 abline(a=0, b= 1)
 auc_all <- performance(ROCR_all, measure = "auc")
 auc_all@y.values
-#0.87368
+#0.9058787
 
 #just using the amenities, recency frequency, reviews, and price
 tree <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
@@ -135,7 +137,7 @@ tree <- rpart(has_reviews_2016 ~ first_review_year + last_review_year +
                     translation.missing..en.hosting_amenity_49 + 
                     translation.missing..en.hosting_amenity_50, 
                   data = train, 
-                  control = rpart.control(max.depth = 0.001))
+                  control = rpart.control(cp = 0.001))
 printcp(tree)
 bestcp<- tree$cptable[which.min(tree$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
@@ -154,4 +156,6 @@ plot(roc_perf)
 abline(a=0, b= 1)
 auc <- performance(ROCR_tree, measure = "auc")
 auc@y.values
-#0.871588
+#0.8992561
+
+
