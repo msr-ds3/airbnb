@@ -380,7 +380,7 @@ write_csv(listings_history, "../../raw_data/listing_history.csv") #writing file
 
 ###### skim #####
 
-#selects one listings per host at random
+#selects one listing per host at random
 skimmed_listings_history <- listings_history %>% group_by(host_id.x) %>% filter(row_number() == sample(1:row_number(), 1))
 
 ###### location #####
@@ -390,7 +390,6 @@ recent_listing <- all_listings %>% group_by(id) %>% arrange(last_scraped) %>% fi
 recent_listing_location <- recent_listing[,c(1, 11:12, 81:82, 13:20, 75)] # select only location-related columns, ordered for better comparison
 
 colnames(recent_listing_location)[1] <- "listing_id" #change "id" to "listings_id"
-View(recent_listing_location)
 
 #nrow(listings_history) #64916 (check! Both must be equal)
 #nrow(all_listings_2015%>% group_by(id) %>% arrange(last_scraped) %>% filter(row_number() == n()) ) #64916 
@@ -402,5 +401,3 @@ ncol(listings_history) # 218 OMG
 View(listings_history[,c(2,206:218)]) # visual check to ensure proper join
 
 write_csv(listings_history, "../../raw_data/listing_history.csv") #writing file
-
-######  #####
