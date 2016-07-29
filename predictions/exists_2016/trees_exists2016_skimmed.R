@@ -13,7 +13,7 @@ library(ROCR)
 #load the test and train data
 #this file was created by  "create_test_train_jan_cohort.R"
 
-load("skimmed_test_train.RData")
+load("../create_test_train/skimmed_test_train.RData")
 
 set.seed(123)
 

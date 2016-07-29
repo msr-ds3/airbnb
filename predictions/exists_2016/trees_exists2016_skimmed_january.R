@@ -14,7 +14,7 @@ library(ROCR)
 #load the test and train data for January
 #this file was created by  "create_test_train_jan_cohort.R"
 
-load("skimmed_jan_test_train.RData")
+load("../skimmed_jan_test_train.RData")
 
 set.seed(123)
 
