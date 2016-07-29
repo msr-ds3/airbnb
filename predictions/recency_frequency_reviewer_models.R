@@ -23,15 +23,18 @@ rev_data <- mutate(rev_data, has_review_2016 = num_in_2016 > 0)
 rev_data_filtered <- filter(rev_data, !is.na(text_in_2015))
 
 # write to csv
-write_csv(rev_data, "../raw_data/us_rev_data.csv")
+#write_csv(rev_data, "../raw_data/us_rev_data.csv")
 
 
 # modeling the data
 # read the csv
-rev_data <- read_csv("../raw_data/us_rev_data.csv")
+rev_data <- read_csv("../raw_data/us_rev_data.csv", col_types = cols(word_na = "d"))
+# need to specify col_type, parsing failures otherwise
 
+################################################################################
 # logistic regression model for whether there is a review or not in 2016 based
 # on when the last review in 2015 was and the number of reviews in 2015
+################################################################################
 model1 <- glm(has_review_2016 ~ last_in_2015 + num_in_2015, data = rev_data,
               family = "binomial")
 
@@ -63,6 +66,9 @@ summary(model1)
 
 # !!! ^ roughly half were removed due to missingness
 
+################################################################################
+# linear model
+################################################################################
 model2 <- lm(num_in_2016 ~ last_month_in_2015 + num_in_2015, data = rev_data)
 # Call:
 #   lm(formula = num_in_2016 ~ last_month_in_2015 + num_in_2015, 
@@ -88,7 +94,8 @@ model2 <- lm(num_in_2016 ~ last_month_in_2015 + num_in_2015, data = rev_data)
 # !!! ^ roughly half were removed due to missingness
 
 ################################################################################
-# decision tree(s)
+# decision trees
+################################################################################
 library(rpart)
 library(rpart.plot)
 library(ROCR)
@@ -108,12 +115,34 @@ before_2016$num_in_2015[is.na(before_2016$num_in_2015)] <- 0
 before_2016$text_in_2015[is.na(before_2016$text_in_2015)] <- ""
 # adding columns for all time reviews as of 2015 and number of places stayed
 before_2016 <- mutate(before_2016, all_time_as_of_2015 = all_time_reviews - num_in_2016,
-                      num_places_stayed = length(strsplit(locations_in_2015, "|")))
+                      weight = as.numeric(num_in_2016 > 0),
+                      weight_lgl = num_in_2016 > 0)
+                      #num_places_stayed = length(strsplit(locations_in_2015, "|")))
+                      # doesn't work, have find a way to count values after split
+# balancing weights
+before_2016$weight[before_2016$weight == 1] <- 2
+before_2016$weight[before_2016$weight == 0] <- 1
 
-indexes <- sample(1:nrow(before_2016), size=0.2*nrow(before_2016))
-rev_test=before_2016[indexes, ]
-rev_train=before_2016[-indexes, ]
-rev_train_sample <- sample_n(rev_train, 100000)
+# january cohort, 54508 obs
+jan_2015 <- filter(before_2016, first_month >= as.Date("2015-01-01") &
+                     first_month <= as.Date("2015-01-31"))
+
+# old sampling without weights
+#indexes <- sample(1:nrow(jan_2015), size=0.2*nrow(jan_2015))
+#rev_test=jan_2015[indexes, ]
+#rev_train=jan_2015[-indexes, ]
+
+# sampling with weights
+rev_test <- sample_n(jan_2015, size=0.2*nrow(jan_2015))
+rev_train <- filter(jan_2015, !jan_2015$reviewer_id %in% rev_test$reviewer_id)
+
+rev_train_true <- filter(rev_train, weight_lgl == T)
+rev_train_false <- filter(rev_train, weight_lgl == F)
+rev_train_oversample <- rbind(head(rev_train_true, 5000), head(rev_train_false, 5000))
+
+# trying to oversample using ROSE, doesn't work
+#rev_train_over <- ovun.sample(has_review_2016 ~ ., data = rev_train, method = "over",
+#                              N = nrow(rev_train), seed = 1)$data
 
 # modeling for num in 2016
 fit1 <- rpart(num_in_2016 ~ last_month_in_2015 + num_in_2015,
@@ -280,13 +309,14 @@ fit3 <- rpart(has_review_2016 ~
                 first_month + first_diff_2015 + last_month + 
                 last_diff_2015 + first_in_2015 + first_month_in_2015 + 
                 last_in_2015 + last_month_in_2015 + num_in_2015 +
-                num_places_stayed + all_time_as_of_2015,
-              data = rev_train_sample, control = rpart.control(cp = 0.005))
+                all_time_as_of_2015,
+              data = rev_train, control = rpart.control(cp = 0.005))
 
 plot(fit3)
 text(fit3)
 rpart.plot(fit3)
 printcp(fit3)
+### with oversampling
 # Regression tree:
 #   rpart(formula = has_review_2016 ~ word_stay + word_na + word_great + 
 #           word_place + word_host + word_house + word_clean + word_nice + 
@@ -312,21 +342,61 @@ printcp(fit3)
 #           word_park + word_extremely + word_left + word_kind + word_safe + 
 #           word_minutes + word_long + word_list + first_month + first_diff_2015 + 
 #           last_month + last_diff_2015 + first_in_2015 + first_month_in_2015 + 
-#           last_in_2015 + last_month_in_2015 + num_in_2015 + num_places_stayed + 
-#           all_time_as_of_2015, data = rev_train_sample, control = rpart.control(cp = 0.005))
+#           last_in_2015 + last_month_in_2015 + num_in_2015 + all_time_as_of_2015, 
+#         data = rev_train_oversample, control = rpart.control(cp = 0.005))
 # 
 # Variables actually used in tree construction:
-#   [1] all_time_as_of_2015 last_month         
+#   [1] last_month  num_in_2015
 # 
-# Root node error: 10421/100000 = 0.10421
+# Root node error: 2500/10000 = 0.25
 # 
-# n= 100000 
+# n= 10000 
+# 
+# CP nsplit rel error  xerror       xstd
+# 1 0.0551962      0   1.00000 1.00017 0.00005928
+# 2 0.0056475      1   0.94480 0.94525 0.00453877
+# 3 0.0050000      2   0.93916 0.94219 0.00462391
+
+### without oversampling
+# Regression tree:
+#   rpart(formula = has_review_2016 ~ word_stay + word_na + word_great + 
+#           word_place + word_host + word_house + word_clean + word_nice + 
+#           word_home + word_comfortable + word_location + word_room + 
+#           word_apartment + word_time + word_recommend + word_perfect + 
+#           word_beautiful + word_made + word_area + word_easy + word_wonderful + 
+#           word_experience + word_enjoy + word_neighborhood + word_bed + 
+#           word_love + word_back + word_good + word_close + word_quiet + 
+#           word_welcome + word_need + word_walk + word_feel + word_helpful + 
+#           word_friendly + word_space + word_restaurant + word_lovely + 
+#           word_night + word_amazing + word_beach + word_kitchen + word_highly + 
+#           word_lot + word_super + word_felt + word_make + word_day + 
+#           word_check + word_bathroom + word_airbnb + word_arrive + 
+#           word_family + word_convenient + word_cozy + word_visit + 
+#           word_view + word_accommodating + word_downtown + word_trip + 
+#           word_walking + word_coffee + word_didn + word_provided + 
+#           word_located + word_spacious + word_quick + word_arrival + 
+#           word_street + word_question + word_breakfast + word_town + 
+#           word_warm + word_private + word_city + word_excellent + word_la + 
+#           word_parking + word_shop + word_gave + word_short + word_people + 
+#           word_awesome + word_distance + word_de + word_guest + word_fantastic + 
+#           word_bedroom + word_work + word_weekend + word_morning + 
+#           word_park + word_extremely + word_left + word_kind + word_safe + 
+#           word_minutes + word_long + word_list + first_month + first_diff_2015 + 
+#           last_month + last_diff_2015 + first_in_2015 + first_month_in_2015 + 
+#           last_in_2015 + last_month_in_2015 + num_in_2015 + all_time_as_of_2015, 
+#         data = rev_train, control = rpart.control(cp = 0.005))
+# 
+# Variables actually used in tree construction:
+#   [1] last_month  num_in_2015
+# 
+# Root node error: 5318.5/43607 = 0.12196
+# 
+# n= 43607 
 # 
 # CP nsplit rel error  xerror      xstd
-# 1 0.0292866      0   1.00000 1.00000 0.0074805
-# 2 0.0076324      1   0.97071 0.97074 0.0072250
-# 3 0.0073413      2   0.96308 0.96374 0.0071851
-# 4 0.0050000      3   0.95574 0.95598 0.0071258
+# 1 0.0483177      0   1.00000 1.00005 0.0098135
+# 2 0.0091505      1   0.95168 0.95446 0.0092791
+# 3 0.0050000      2   0.94253 0.94535 0.0092910
 
 bestcp3 <- fit3$cptable[which.min(fit3$cptable[,"xerror"]), "CP"]
 
@@ -348,6 +418,51 @@ sample_predict3 <- predict(tree_pruned3, rev_test)
 ROCR3 <- prediction(sample_predict3, rev_test$has_review_2016) 
 roc.perf3 = performance(ROCR3, measure = "tpr", x.measure = "fpr")
 performance(ROCR3, measure = "auc")
+### with oversampling
+# An object of class "performance"
+# Slot "x.name":
+#   [1] "None"
+# 
+# Slot "y.name":
+#   [1] "Area under the ROC curve"
+# 
+# Slot "alpha.name":
+#   [1] "none"
+# 
+# Slot "x.values":
+#   list()
+# 
+# Slot "y.values":
+#   [[1]]
+# [1] 0.6391852
+# 
+# 
+# Slot "alpha.values":
+#   list()
+
+### without oversampling
+# An object of class "performance"
+# Slot "x.name":
+#   [1] "None"
+# 
+# Slot "y.name":
+#   [1] "Area under the ROC curve"
+# 
+# Slot "alpha.name":
+#   [1] "none"
+# 
+# Slot "x.values":
+#   list()
+# 
+# Slot "y.values":
+#   [[1]]
+# [1] 0.6321759
+# 
+# 
+# Slot "alpha.values":
+#   list()
+##### Conclusion: oversampling improves AUC by .007
+
 plot(roc.perf3)
 
 
