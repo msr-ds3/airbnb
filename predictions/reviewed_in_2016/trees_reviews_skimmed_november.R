@@ -357,7 +357,7 @@ auc_ver@y.values
 #0.689
 
 ############RECENCY FREQUENCY, REVIEWS, AMMENITIES, VERIFICATION##############
-tree_all <- rpart(has_reviews_2016 ~  TV + Internet + Wireless.Internet +
+tree_nov <- rpart(has_reviews_2016 ~  TV + Internet + Wireless.Internet +
                     Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
                     Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
                     Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
@@ -388,26 +388,27 @@ tree_all <- rpart(has_reviews_2016 ~  TV + Internet + Wireless.Internet +
                     amex + verifications_count, 
                   data = skimmed_nov_train, 
                   control = rpart.control(cp = 0.001))
-printcp(tree_all)
-bestcp_all <- tree_all$cptable[which.min(tree_all$cptable[,"xerror"]), "CP"]
+printcp(tree_nov)
+bestcp_nov <- tree_nov$cptable[which.min(tree_nov$cptable[,"xerror"]), "CP"]
 #prune tree using best cp
-tree_pruned_all <- prune(tree_all, cp = bestcp_all)
+tree_pruned_nov <- prune(tree_nov, cp = bestcp_nov)
 
 #plots
-plot(tree_pruned_all, uniform = TRUE)
-text(tree_pruned_all, cex = 0.8, use.n = TRUE, xpd = TRUE)
-prp(tree_pruned_all, faclen = 0, cex = 0.8, extra = 1)
+rpart.plot(tree_pruned_nov)
+plot(tree_pruned_nov, uniform = TRUE)
+text(tree_pruned_nov, cex = 0.8, use.n = TRUE, xpd = TRUE)
+prp(tree_pruned_nov, faclen = 0, cex = 0.8, extra = 1)
 
 #use the tree_pruned_rf to predict on the test set
-predict_all <- predict(tree_pruned_all, skimmed_nov_test)
-ROCR_all <- prediction(predict_all, skimmed_nov_test$has_reviews_2016)
-roc_perf_all <- performance(ROCR_all, measure = "tpr", x.measure = "fpr")
+predict_nov <- predict(tree_pruned_nov, skimmed_nov_test)
+ROCR_nov <- prediction(predict_nov, skimmed_nov_test$has_reviews_2016)
+roc_perf_nov <- performance(ROCR_nov, measure = "tpr", x.measure = "fpr")
 #plot the ROC curve
-plot(roc_perf_all)
+plot(roc_perf_nov)
 abline(a=0, b= 1)
 #find the area under the roc curve
-auc_all <- performance(ROCR_all, measure = "auc")
-auc_all@y.values
+auc_nov <- performance(ROCR_nov, measure = "auc")
+auc_nov@y.values
 #0.855
 
 #######################WORDS TREE#############################################
@@ -745,3 +746,51 @@ abline(a=0, b= 1)
 auc_non <- performance(ROCR_non, measure = "auc")
 auc_non@y.values
 #0.797
+
+######################RECENCY FREQUENCY & WORDS###############################
+#reviews ~ words + recency frequency
+tree_word_rf <- rpart(has_reviews_2016 ~ word_stay + word_apartment + word_great + 
+                        word_place + word_host + word_clean + word_location + word_nice + word_room + 
+                        word_subway + word_recommend + word_de + word_comfortable + word_time + 
+                        word_good + word_easy + word_perfect + word_close + word_restaurant + 
+                        word_neighborhood + word_la + word_nyc + word_helpful + word_bed + 
+                        word_manhattan + word_experience + word_made + word_home + word_walk + 
+                        word_area + word_york + word_friendly + word_le + word_lot + word_check + 
+                        word_city + word_est + word_need + word_super + word_en + word_quiet + 
+                        word_back + word_feel + word_welcome + word_convenient + word_station + 
+                        word_wonderful + word_space + word_enjoy + word_night + word_located + 
+                        word_love + word_arrival + word_day + word_brooklyn + word_arrive + word_felt + 
+                        word_amazing + word_bathroom + word_safe + word_park + word_highly + word_trs + 
+                        word_kitchen + word_street + word_block + word_house + word_nous + word_lovely + 
+                        word_days + word_airbnb + word_question + word_el + word_shop + word_didn + 
+                        word_spacious + word_make + word_quick + word_bar + word_people + 
+                        word_accommodating + word_walking + word_minutes + word_train + word_beautiful + 
+                        word_key + word_ny + word_central + word_small + word_muy + word_visit + 
+                        word_building + word_es + word_excellent + word_appartement + word_metro + 
+                        word_bedroom + word_trip + word_times + word_kind +
+                        host_listings_count + host_duration + 
+                        first_seen_month + last_seen_month + 
+                        listing_recency_2015_weeks + scrap_duration + 
+                        total_occ_2015 + review_recency_2015_weeks + 
+                        is_superhost_2015 + is_superhost_count_2015,                 
+                      data = skimmed_nov_train, 
+                      control = rpart.control(cp = 0.001))
+printcp(tree_word_rf)
+bestcp_word_rf <- tree_word_rf$cptable[which.min(tree_word_rf$cptable[,"xerror"]), "CP"]
+#prune tree using best cp
+tree_pruned_word_rf <- prune(tree_word_rf, cp = bestcp_word_rf)
+
+#plots
+plot(tree_word_rf, uniform = TRUE)
+text(tree_word_rf, cex = 0.8, use.n = TRUE, xpd = TRUE)
+prp(tree_pruned_word_rf, faclen = 0, cex = 0.8, extra = 1)
+
+#use the tree_pruned_rf to predict on the test set
+word_rf_predict <- predict(tree_pruned_word_rf, skimmed_nov_test)
+ROCR_word_rf <- prediction(word_rf_predict, skimmed_nov_test$has_reviews_2016)
+roc_perf_word_rf <- performance(ROCR_word_rf, measure = "tpr", x.measure = "fpr")
+plot(roc_perf_word_rf)
+abline(a=0, b= 1)
+auc_word_rf <- performance(ROCR_word_rf, measure = "auc")
+auc_word_rf@y.values
+#0.767
