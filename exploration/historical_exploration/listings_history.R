@@ -370,6 +370,9 @@ x <- filter(all_listings, host_id == 2787) %>% select(listing_id, last_scraped, 
 all_nas <- listings_history[is.na(listings_history$first_review),]
 
 ######crime#####
+crime_rate_by_listing_id<- read_csv("../../raw_data/crime_and_listings.csv")
+
+listings_history <- left_join(listings_history, crime_rate_by_listing_id, by="listing_id") #join
 
 
 ####purged listings####
