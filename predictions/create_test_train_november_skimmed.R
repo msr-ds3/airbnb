@@ -11,7 +11,8 @@ load("skimmed_listings_history.RData")
 #filter the listings for only those in the November cohort
 #these listings were first seen in November 2015
 
-listings_history_november <- skimmed_listings_history %>% filter(first_seen_month == 11)
+listings_history_november <- skimmed_listings_history %>% 
+  filter(first_seen_month == 11)
 
 #create an index to use for test and train
 #this will create a test set that is 20% of the listings history data

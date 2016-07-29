@@ -11,7 +11,7 @@ library(readr)
 library(dplyr)
 library(ROCR)
 
-#load the test and train data for january
+#load the test and train data for November
 #this file was created by  "create_test_train_november_cohort.R"
 
 load("skimmed_nov_test_train.RData")
