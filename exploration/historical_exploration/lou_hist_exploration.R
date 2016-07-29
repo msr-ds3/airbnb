@@ -147,7 +147,7 @@ graph_word_frequency(listings_in_2016, 106:205, "Listings In 2016") # graph for 
 
 graph_word_frequency(listings_not_in_2016, 106:205, "Listings NOT In 2016") # graph for NOT exist in 2016
 
-# todo: get proper numbers!
+# todo: get proper stat numbers!
 
 View(graph_word_frequency(listings_in_2016, 106:205))
 View(graph_word_frequency(listings_not_in_2016, 106:205))
@@ -156,5 +156,9 @@ View(graph_word_frequency(filter(listings_history, purged == TRUE), 106:205))
 
 ################################################### [ skimmed listings ]
 
+#selects one listing per host at random
 skimmed_listings_history <- listings_history %>% group_by(host_id.x) %>% filter(row_number() == sample(1:row_number(), 1))
 
+################################################### [ correlation of rating & num verification ]
+cor(listings_history$last_rating, listing_history$verifications_count, na.rm = TRUE)
+?cor

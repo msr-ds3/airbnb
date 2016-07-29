@@ -90,8 +90,7 @@ all_listings <- rbind(listings1501, listings1503, listings1504, listings1505, li
                       listings1508, listings1509, listings1510, listings1511, listings1512,
                       listings1601, listings1602, listings1604, listings1605, listings1606, listings1607 ) 
 #run this for 2015#
-all_listings_2015 <- rbind(listings1501, listings1503, listings1504, listings1505, listings1506, 
-                      listings1508, listings1509, listings1510, listings1511, listings1512) 
+
 #run this for 2016#
 all_listings_2016 <- rbind(listings1601, listings1602, listings1604, listings1605, listings1606, listings1607) 
 
@@ -403,3 +402,26 @@ listings_history <- left_join(listings_history, word_features, by="listing_id") 
 
 write_csv(listings_history, "../../raw_data/listing_history.csv") #writing file
 
+###### skim #####
+
+#selects one listing per host at random
+skimmed_listings_history <- listings_history %>% group_by(host_id.x) %>% filter(row_number() == sample(1:row_number(), 1))
+
+###### location #####
+#add location information for each listing in listings_history
+recent_listing <- all_listings %>% group_by(id) %>% arrange(last_scraped) %>% filter(row_number() == n()) #get the most recent listing
+
+recent_listing_location <- recent_listing[,c(1, 11:12, 81:82, 13:20, 75)] # select only location-related columns, ordered for better comparison
+
+colnames(recent_listing_location)[1] <- "listing_id" #change "id" to "listings_id"
+
+#nrow(listings_history) #64916 (check! Both must be equal)
+#nrow(all_listings_2015%>% group_by(id) %>% arrange(last_scraped) %>% filter(row_number() == n()) ) #64916 
+
+listings_history <- left_join(listings_history, recent_listing_location, by="listing_id")
+
+ncol(listings_history) # 218 OMG
+
+View(listings_history[,c(2,206:218)]) # visual check to ensure proper join
+
+write_csv(listings_history, "../../raw_data/listing_history.csv") #writing file
