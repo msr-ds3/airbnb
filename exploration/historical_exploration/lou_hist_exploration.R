@@ -107,3 +107,54 @@ typeof(prepurge_bare)
 df <- prepurge_bare %>% filter(purged == TRUE)
 
 View(df)
+
+################################################### [graphing word frequency]
+listing_history <- read_csv("../../raw_data/listing_history.csv")
+
+word_features <- read_csv("../../raw_data/word_features.csv")
+View(word_features)
+
+# function to graph word frequency
+graph_word_frequency <- function(df, range, title="Frequency of Words"){
+  word_count <- colSums(df[range]) #gather sums of each word
+  
+  # make dataframe, and substring "word_great" to "great"
+  word_summary_df <- data.frame(word=substring(colnames(df)[range], 6), frequency=word_count) %>% arrange((word_count))
+
+  # create factors
+  word_summary_df$word <- factor(word_summary_df$word, levels = word_summary_df$word[order(word_summary_df$frequency)]) 
+  
+  # plot
+  ggplot(aes(word, frequency), data=word_summary_df) + 
+    geom_point() + ggtitle(title) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) # angle x axis
+  
+  return(word_summary_df)
+}
+
+View(graph_word_frequency(word_features, 3:102))
+
+################################################### [splitting word frequency]
+summary(listing_history$exist_in_2016)
+
+# filter for existence in 2016
+listings_in_2016 <- listing_history %>% filter(exist_in_2016 == TRUE) 
+listings_not_in_2016 <- listing_history %>% filter(exist_in_2016 == FALSE)
+
+nrow(listing_history) == nrow(listings_in_2016) + nrow(listings_not_in_2016) # TRUE. Checking to see accurate split
+
+graph_word_frequency(listings_in_2016, 106:205, "Listings In 2016") # graph for exists in 2016
+
+graph_word_frequency(listings_not_in_2016, 106:205, "Listings NOT In 2016") # graph for NOT exist in 2016
+
+# todo: get proper numbers!
+
+View(graph_word_frequency(listings_in_2016, 106:205))
+View(graph_word_frequency(listings_not_in_2016, 106:205))
+
+View(graph_word_frequency(filter(listings_history, purged == TRUE), 106:205))
+
+################################################### [ skimmed listings ]
+
+skimmed_listings_history <- listings_history %>% group_by(host_id.x) %>% filter(row_number() == sample(1:row_number(), 1))
+

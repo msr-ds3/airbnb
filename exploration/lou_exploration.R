@@ -94,7 +94,9 @@ View(amenity_summary_df)
 
 amenity_summary_df$amenity_type <- factor(amenity_summary_df$amenity_type, levels = amenity_summary_df$amenity_type[order(amenity_summary_df$frequency)])
 
-ggplot(aes(amenity_type, frequency), data=amenity_summary_df) + geom_point()
+ggplot(aes(amenity_type, frequency), data=amenity_summary_df) + 
+  geom_point() + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) # angle x axis
 
 #price based on host name (i.e. gender)
 

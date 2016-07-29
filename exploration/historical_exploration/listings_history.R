@@ -369,15 +369,34 @@ x <- filter(all_listings, host_id == 2787) %>% select(listing_id, last_scraped, 
 
 all_nas <- listings_history[is.na(listings_history$first_review),]
 
-
 ######crime#####
 
 
-####purge####
+####purged listings####
+purged_listings <- read_csv("../../raw_data/purged_listings.csv")
 
-listings_history <- read_csv("listing_history.csv")
+purged_listings <- mutate(purged_listings, purged = TRUE) #add purged T/F column
 
-listings1511 <- read_csv("../../raw_data/2015-11-01-listings.csv")
-listings151120 <- read_csv("../../raw_data/2015-11-20-listings.csv") #watch out for this one! This is still November
+purged_listings_skinny <- select(purged_listings, id, purged) # selecting only id and T/F column
 
+colnames(purged_listings_skinny)[1] <- "listing_id" #change "id" to "listings_id"
+
+listings_history <- left_join(listings_history, purged_listings_skinny, by="listing_id") #join
+
+listings_history$purged[is.na(listings_history$purged)] <- FALSE #changing NAs to FALSE (becuase when it's NA, it means it was NOT a purge)
+
+summary(listings_history$purged) #checking for no NAs. Should have 1,324 TRUE
+
+write_csv(listings_history, "listing_history.csv") #writing file
+
+colnames(listings_history)[104]
+
+###### words #####
+word_features <- purged_listings <- read_csv("../../raw_data/word_features.csv")
+
+colnames(listings_history) #check that this is the most recent version: should have "purged"
+
+listings_history <- left_join(listings_history, word_features, by="listing_id") #join. Should have 205 columns! Ahh!
+
+write_csv(listings_history, "../../raw_data/listing_history.csv") #writing file
 
