@@ -110,10 +110,13 @@ before_2016$text_in_2015[is.na(before_2016$text_in_2015)] <- ""
 before_2016 <- mutate(before_2016, all_time_as_of_2015 = all_time_reviews - num_in_2016,
                       num_places_stayed = length(strsplit(locations_in_2015, "|")))
 
-indexes <- sample(1:nrow(before_2016), size=0.2*nrow(before_2016))
-rev_test=before_2016[indexes, ]
-rev_train=before_2016[-indexes, ]
-rev_train_sample <- sample_n(rev_train, 100000)
+# january cohort, 54508 obs
+jan_2015 <- filter(before_2016, first_month >= as.Date("2015-01-01") & first_month <= as.Date("2015-01-31"))
+
+indexes <- sample(1:nrow(jan_2015), size=0.2*nrow(jan_2015))
+rev_test=jan_2015[indexes, ]
+rev_train=jan_2015[-indexes, ]
+#rev_train_sample <- sample_n(rev_train, 100000)
 
 # modeling for num in 2016
 fit1 <- rpart(num_in_2016 ~ last_month_in_2015 + num_in_2015,
@@ -276,12 +279,12 @@ fit3 <- rpart(has_review_2016 ~
                 word_distance + word_de + word_guest + word_fantastic + word_bedroom +
                 word_work + word_weekend + word_morning + word_park + word_extremely +
                 word_left + word_kind + word_safe + word_minutes + word_long +
-                word_list +
-                first_month + first_diff_2015 + last_month + 
-                last_diff_2015 + first_in_2015 + first_month_in_2015 + 
-                last_in_2015 + last_month_in_2015 + num_in_2015 +
-                num_places_stayed + all_time_as_of_2015,
-              data = rev_train_sample, control = rpart.control(cp = 0.005))
+                word_list,
+                #first_month + first_diff_2015 + last_month + 
+                #last_diff_2015 + first_in_2015 + first_month_in_2015 + 
+                #last_in_2015 + last_month_in_2015 + num_in_2015 +
+                #num_places_stayed + all_time_as_of_2015,
+              data = rev_train, control = rpart.control(cp = 0.005))
 
 plot(fit3)
 text(fit3)
