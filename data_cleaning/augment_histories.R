@@ -108,5 +108,5 @@ listing_review_features <- review_features %>%
 ## Save listing review features
 ###############################################################################
 
-write_csv(listing_review_features, "../raw_data/review_listing_features.csv")
+write_csv(listing_review_features, "../raw_data/listing_review_features.csv")
 
