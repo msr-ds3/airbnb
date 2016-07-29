@@ -16,88 +16,97 @@ library(scales)
 ## Load in data
 ###############################################################################
 
-# Listings history
-# Note: this assumes listing_history.csv exists and is in the raw_data 
-#  directory. You may need to move this file there.
-listings_history <- read.csv("../raw_data/listing_history.csv")
+# Reviews, joined to listings
+reviews_and_listings <- read.csv("../raw_data/reviews_and_listings.csv.gz")
 
-# Reviewer data
-# We only have NYC listings, so we don't need other reviews (below).
-# review_files <- c('../raw_data/barcelona-reviews.csv',
-#                   '../raw_data/copenhagen-reviews.csv',
-#                   '../raw_data/los-angeles-reviews.csv',
-#                   '../raw_data/berlin-reviews.csv',
-#                   '../raw_data/listing_history.csv',
-#                   '../raw_data/new-york-city-reviews.csv',
-#                   '../raw_data/san-francisco-reviews.csv',
-#                   '../raw_data/chicago-reviews.csv',
-#                   '../raw_data/london-reviews.csv',
-#                   '../raw_data/paris-reviews.csv',
-#                   '../raw_data/sydney-reviews.csv')
-
-review_files <- c('../raw_data/new-york-city-reviews.csv')
-reviews <- data.frame()
-for (f in review_files) {
-  reviews <- rbind(reviews, read.csv(review_files))
-}
+# More "raw" reviews
+reviews <- read.csv('../raw_data/new-york-city-reviews.csv')
 
 
 ###############################################################################
-## Find out where reviewers stayed for first review
+## And features from where reviewers stayed for FIRST and LAST reviews
 ###############################################################################
 
-# How many reviewers are there?
-reviews %>% summarize(n_distinct(reviewer_id))
+review_listing_features <- reviews_and_listings %>% 
+  filter(as.character(review_date) < "2016-01-01") %>%
+  group_by(reviewer_id) %>%
+  arrange(review_date) %>%
+  summarize(
+    fs_listing_id = first(listing_id),
+    fs_review_date = first(review_date),
+    fs_room_type = first(room_type),
+    fs_mean_price = first(mean_price),
+    fs_min_price = first(min_price),
+    fs_max_price = first(max_price),
+    fs_is_multilisting = first(is_multilisting),
+    fs_host_since = first(host_since),
+    fs_host_listings_count = first(host_listings_count),
+    fs_first_review = first(first_review),
+    fs_first_review_month_2015 = first(first_review_month_2015),
+    fs_is_superhost_2015 = first(is_superhost_2015),
+    
+    ls_listing_id = last(listing_id),
+    ls_review_date = first(review_date),
+    ls_room_type = last(room_type),
+    ls_mean_price = last(mean_price),
+    ls_min_price = last(min_price),
+    ls_max_price = last(max_price),
+    ls_is_multilisting = last(is_multilisting),
+    ls_host_since = last(host_since),
+    ls_host_listings_count = last(host_listings_count),
+    ls_first_review = last(first_review),
+    ls_first_review_month_2015 = last(first_review_month_2015),
+    ls_is_superhost_2015 = last(is_superhost_2015)    
+  )
 
-# Add a review number for each review, for each reviewer
-reviews <- reviews %>% 
+###############################################################################
+## Save review features
+###############################################################################
+
+write_csv(review_listing_features, "../raw_data/review_listing_features.csv")
+
+
+###############################################################################
+## And features for listers from FIRST and MOST RECENT and AVERAGE
+###############################################################################
+
+review_features <- reviews %>%
+  select(-comments) %>%
+  filter(as.character(date) < "2016-01-01") %>%
   group_by(reviewer_id) %>%
   arrange(date) %>%
-  mutate(review_number = row_number()) %>%
+  mutate(
+    num_reviews = n(),
+    first_review_date = first(date),
+    last_review_date = last(date),
+    num_different_places = n_distinct(listing_id)
+  ) %>%
   ungroup()
-
-first_reviews <- reviews %>% filter(review_number == 1)
   
-# Check that length of first_reviews is same as number of reviewers..
-# Should be TRUE
-(first_reviews %>% nrow) == reviews %>% summarize(n_distinct(reviewer_id))
+listing_review_features <- review_features %>%
+  group_by(listing_id) %>%
+  arrange(date) %>%
+  summarize(
+    fr_num_reviews = first(num_reviews),
+    fr_first_review_date = first(first_review_date),
+    fr_last_review_date = first(last_review_date),
+    fr_num_different_places = first(num_different_places),
+    
+    lr_num_reviews = last(num_reviews),
+    lr_first_review_date = last(first_review_date),
+    lr_last_review_date = last(last_review_date),
+    lr_num_different_places = last(num_different_places),
+    
+    avg_reviewer_num_reviews = mean(num_reviews),
+    avg_reviewer_num_places = mean(num_different_places)
+  )
 
-
-###############################################################################
-## Combine first review data with listings data 
-###############################################################################
-
-df <- left_join(reviews, listings_history, by="listing_id")
-
-df <- df %>% 
-  rename(review_id = id,
-         review_date = date) %>%
-  select(-text_2015)
-
-
-###############################################################################
-## Save!
-###############################################################################
-
-write_csv(df, "../raw_data/reviews_and_listings.csv")
-
+# TODO: entropy of places reviewers stay
+# TODO: join with Francesco's text data
 
 ###############################################################################
-## Analysis (should probably delete or move)
+## Save listing review features
 ###############################################################################
 
-num_reviews <- reviews %>%
-  group_by(reviewer_id) %>%
-  summarize(num_stays = n(),
-            repeat_customer = num_stays > 1)
+write_csv(listing_review_features, "../raw_data/review_listing_features.csv")
 
-# Should change to left join and filter on NAs... TODO
-foo <- right_join(features_reviews, num_reviews)
-
-foo %>% 
-  group_by(first_stay_w_super_2015) %>% 
-  summarize(mean(repeat_customer))
-
-foo <- filter(foo, !is.na(first_stay_w_super_2015))
-
-baz <- glm(repeat_customer ~ first_stay_w_super_2015, data=foo, family="binomial")
