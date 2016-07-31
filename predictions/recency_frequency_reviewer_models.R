@@ -132,13 +132,30 @@ jan_2015 <- filter(before_2016, first_month >= as.Date("2015-01-01") &
 #rev_test=jan_2015[indexes, ]
 #rev_train=jan_2015[-indexes, ]
 
-# sampling with weights
+# sampling with weights (january cohort)
 rev_test <- sample_n(jan_2015, size=0.2*nrow(jan_2015))
 rev_train <- filter(jan_2015, !jan_2015$reviewer_id %in% rev_test$reviewer_id)
 
 rev_train_true <- filter(rev_train, weight_lgl == T)
 rev_train_false <- filter(rev_train, weight_lgl == F)
 rev_train_oversample <- rbind(head(rev_train_true, 5000), head(rev_train_false, 5000))
+
+# sampling with weights
+rev_test <- sample_n(before_2016, size=0.2*nrow(before_2016))
+rev_train <- filter(before_2016, !before_2016$reviewer_id %in% rev_test$reviewer_id)
+
+rev_train_true <- filter(rev_train, weight_lgl == T)
+rev_train_false <- filter(rev_train, weight_lgl == F)
+rev_train_oversample <- rbind(head(rev_train_true, 20000), head(rev_train_false, 20000))
+
+# sampling num_in_2015 > 0 cohort
+rev_test <- sample_n(num_more_than_one, size=0.2*nrow(num_more_than_one))
+rev_train <- filter(num_more_than_one, !num_more_than_one$reviewer_id %in% rev_test$reviewer_id)
+
+rev_train_true <- filter(rev_train, weight_lgl == T)
+rev_train_false <- filter(rev_train, weight_lgl == F)
+rev_train_oversample <- rbind(head(rev_train_true, 65000), head(rev_train_false, 65000))
+
 
 # trying to oversample using ROSE, doesn't work
 #rev_train_over <- ovun.sample(has_review_2016 ~ ., data = rev_train, method = "over",
@@ -528,3 +545,153 @@ ROCR4 <- prediction(sample_predict4, rev_test$has_review_2016)
 roc.perf4 = performance(ROCR4, measure = "tpr", x.measure = "fpr")
 performance(ROCR4, measure = "auc")
 plot(roc.perf4)
+
+
+
+
+################################################################################
+features <- read_csv("../raw_data/review_listing_features.csv")
+
+before_2016 <- inner_join(before_2016, features, by = "reviewer_id")
+
+# resample
+
+fit5 <- rpart(has_review_2016 ~ 
+                fs_is_superhost_2015 +
+                fs_mean_price +
+                fs_host_listings_count +
+                fs_host_since +
+                fs_first_review_month_2015 +
+                ls_is_superhost_2015 + 
+                ls_mean_price +
+                ls_host_listings_count +
+                ls_host_since +
+                ls_first_review_month_2015 +
+                last_month_in_2015 + num_in_2015 +
+                word_great,
+              data = rev_train_oversample, control = rpart.control(cp = 0.001, maxdepth = 5))
+
+plot(fit5)
+text(fit5)
+rpart.plot(fit5)
+printcp(fit5)
+
+
+prp(fit5, faclen = 0, cex = 0.8, node.fun=tot_count)
+
+
+bestcp5 <- fit5$cptable[which.min(fit5$cptable[,"xerror"]), "CP"]
+
+#prune tree using best cp
+tree_pruned5 <- prune(fit5, cp = bestcp5)
+
+plot(tree_pruned5, uniform = TRUE)
+text(tree_pruned5, cex = 0.8, use.n = TRUE, xpd = TRUE)
+
+prp(tree_pruned5, faclen = 0, cex = 0.8, extra = 1)
+
+prp(tree_pruned5, faclen = 0, cex = 0.8, node.fun=tot_count)
+
+rpart.plot(tree_pruned5)
+
+#use predict to see the prediction
+sample_predict5 <- predict(tree_pruned5, rev_test)
+
+ROCR5 <- prediction(sample_predict5, rev_test$has_review_2016) 
+roc.perf5 = performance(ROCR5, measure = "tpr", x.measure = "fpr")
+performance(ROCR5, measure = "auc")
+plot(roc.perf5)
+
+
+# regression
+model <- glm(has_review_2016 ~ 
+               # fs_is_superhost_2015 + 
+               # fs_mean_price +
+               # fs_host_listings_count +
+               ls_is_superhost_2015 + 
+               ls_mean_price +
+               ls_host_listings_count +
+               ls_host_since,
+             data = rev_train, family = "binomial")
+summary(model)
+
+
+####### num_in_2015 > 1
+num_more_than_one <- filter(before_2016, num_in_2015 > 1)
+
+# resample
+
+fit6 <- rpart(has_review_2016 ~ 
+                fs_is_superhost_2015 +
+                fs_mean_price +
+                fs_host_listings_count +
+                fs_host_since +
+                fs_first_review_month_2015 +
+                ls_is_superhost_2015 + 
+                ls_mean_price +
+                ls_host_listings_count +
+                ls_host_since +
+                ls_first_review_month_2015 +
+                last_month_in_2015 + num_in_2015 +
+                word_great,
+              data = rev_train_oversample, control = rpart.control(cp = 0.001, maxdepth = 5))
+
+plot(fit6)
+text(fit6)
+rpart.plot(fit6)
+printcp(fit6)
+# Regression tree:
+#   rpart(formula = has_review_2016 ~ fs_is_superhost_2015 + fs_mean_price + 
+#           fs_host_listings_count + fs_host_since + fs_first_review_month_2015 + 
+#           ls_is_superhost_2015 + ls_mean_price + ls_host_listings_count + 
+#           ls_host_since + ls_first_review_month_2015 + last_month_in_2015 + 
+#           num_in_2015 + word_great, data = rev_train_oversample, control = rpart.control(cp = 0.001, 
+#                                                                                          maxdepth = 5))
+# 
+# Variables actually used in tree construction:
+#   [1] last_month_in_2015 ls_mean_price      num_in_2015        word_great        
+# 
+# Root node error: 6884.5/40440 = 0.17024
+# 
+# n= 40440 
+# 
+# CP nsplit rel error  xerror      xstd
+# 1  0.0244049      0   1.00000 1.00005 0.0068078
+# 2  0.0087747      1   0.97560 0.97569 0.0067348
+# 3  0.0081768      2   0.96682 0.96929 0.0066960
+# 4  0.0033712      3   0.95864 0.95885 0.0067185
+# 5  0.0029248      4   0.95527 0.95642 0.0067264
+# 6  0.0025383      5   0.95235 0.95400 0.0067049
+# 7  0.0015695      6   0.94981 0.95030 0.0066918
+# 8  0.0015372      7   0.94824 0.94978 0.0067105
+# 9  0.0014557      8   0.94670 0.94930 0.0067122
+# 10 0.0013804      9   0.94525 0.94820 0.0067089
+# 11 0.0010000     10   0.94387 0.94645 0.0066993
+
+prp(fit6, faclen = 0, cex = 0.8, node.fun=tot_count)
+
+
+bestcp6 <- fit6$cptable[which.min(fit6$cptable[,"xerror"]), "CP"]
+
+#prune tree using best cp
+tree_pruned6 <- prune(fit6, cp = bestcp6)
+
+plot(tree_pruned6, uniform = TRUE)
+text(tree_pruned6, cex = 0.8, use.n = TRUE, xpd = TRUE)
+
+prp(tree_pruned6, faclen = 0, cex = 0.8, extra = 1)
+
+prp(tree_pruned6, faclen = 0, cex = 0.8, node.fun=tot_count)
+
+rpart.plot(tree_pruned6)
+
+#use predict to see the prediction
+sample_predict6 <- predict(tree_pruned6, rev_test)
+
+ROCR6 <- prediction(sample_predict6, rev_test$has_review_2016) 
+roc.perf6 = performance(ROCR6, measure = "tpr", x.measure = "fpr")
+performance(ROCR6, measure = "auc")
+plot(roc.perf6)
+# Slot "y.values":
+#   [[1]]
+# [1] 0.6341948

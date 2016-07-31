@@ -4,7 +4,7 @@ library(rpart.plot)
 library(ROCR)
 library(dplyr)
 
-set.seed(123)
+
 
 # expands nums from abbreviated to actual numbers
 tot_count <- function(x, labs, digits, varlen)
