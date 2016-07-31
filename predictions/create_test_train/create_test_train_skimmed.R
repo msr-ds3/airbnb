@@ -5,7 +5,7 @@ library(readr)
 
 #load the listings history database
 
-load("skimmed_listings_history.RData") 
+load("../skimmed_listings_history.RData") 
 ##created by file = "create_listings_history_skimmed.R"
 
 #create an index to use for test and train

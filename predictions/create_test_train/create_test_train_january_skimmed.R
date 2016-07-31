@@ -5,7 +5,7 @@ library(readr)
 
 #load the listings history database skimmed
 
-load("skimmed_listings_history.RData") 
+load("../skimmed_listings_history.RData") 
 ##created by file = "create_listings_history_skimmed.R"
 
 #filter the listings for only those in the january cohort

@@ -6,7 +6,7 @@ library(dplyr)
 
 #load the listings history database
 
-load("skimmed_listings_history.RData") 
+load("../skimmed_listings_history.RData") 
 ##created by file = "create_listings_history_skimmed.R"
 
 #filter the listings for only those in the June cohort
