@@ -162,3 +162,4 @@ skimmed_listings_history <- listings_history %>% group_by(host_id.x) %>% filter(
 ################################################### [ correlation of rating & num verification ]
 cor(listings_history$last_rating, listing_history$verifications_count, na.rm = TRUE)
 ?cor
+
