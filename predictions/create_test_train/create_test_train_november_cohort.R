@@ -5,7 +5,7 @@ library(readr)
 
 #load the listings history database
 
-listings_history <- read_csv("../raw_data/listing_history.csv")
+listings_history <- read_csv("../../raw_data/listing_history.csv")
 
 #filter the listings for only those in the November cohort
 #these listings were first seen in November 2015

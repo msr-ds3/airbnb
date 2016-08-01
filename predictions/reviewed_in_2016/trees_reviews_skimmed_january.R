@@ -15,8 +15,76 @@ library(ROCR)
 #this file was created by  "create_test_train_january_cohort.R"
 
 load("../skimmed_jan_test_train.RData")
+num_folds <- 10
+listings_auc <- nrow(skimmed_listings_history)
+skimmed_listings_history$fold <- sample(1:num_folds, listings_auc, replace=T)
 
-set.seed(123)
+auc <- c()
+
+for (i in 1:num_folds) {
+  set.seed(i)
+  # use this data frame to fit your model
+  listings_train <- filter(skimmed_listings_history, fold != i)
+  
+  # pretend this doesn't exist (for now!)
+  listings_test <- filter(skimmed_listings_history, fold == i)
+  
+  # fit on the training data
+  tree_rf <- rpart(has_reviews_2016 ~ host_listings_count + host_duration + 
+                     first_seen_month + last_seen_month + 
+                     listing_recency_2015_weeks + scrap_duration + 
+                     total_occ_2015 + review_recency_2015_weeks + 
+                     is_superhost_2015 + is_superhost_count_2015, 
+                   data = listings_train, 
+                   control = rpart.control(cp = 0.001))
+  
+  # evaluate on the test data
+  bestcp_rf <- tree_rf$cptable[which.min(tree_rf$cptable[,"xerror"]), "CP"]
+  tree_pruned_rf <- prune(tree_rf, cp = bestcp_rf)
+  rf_predict <- predict(tree_pruned_rf, listings_test)
+  ROCR_rf <- prediction(rf_predict, listings_test$has_reviews_2016)
+  roc.perf <- performance(ROCR_rf, measure = "tpr", x.measure = "fpr")
+  auc_rf <- performance(ROCR_rf, measure = "auc")
+  auc[i]  <- auc_rf@y.values
+}
+
+
+bestcp_rf <- tree_rf$cptable[which.min(tree_rf$cptable[,"xerror"]), "CP"]
+#prune tree using best cp
+tree_pruned_rf <- prune(tree_rf, cp = bestcp_rf)
+rf_predict <- predict(tree_pruned_rf, skimmed_jan_test)
+ROCR_rf <- prediction(rf_predict, skimmed_jan_test$has_reviews_2016)
+roc.perf <- performance(ROCR_rf, measure = "tpr", x.measure = "fpr")
+auc_rf <- performance(ROCR_rf, measure = "auc")
+auc_rf@y.values
+
+# fit a model for each polynomial degree
+K <- 1:12
+avg_test_err <- c()
+se_test_err <- c()
+for (k in K) {
+  
+  # do 5-fold cross-validation within each value of k
+  test_err <- c()
+  for (f in 1:num_folds) {
+    # use this data frame to fit your model
+    trips_per_day_train <- filter(trips_per_day, fold != f)
+    
+    # pretend this doesn't exist (for now!)
+    trips_per_day_test <- filter(trips_per_day, fold == f)
+    
+    # fit on the training data
+    model <- lm(num_trips ~ poly(tmin, k), data=trips_per_day_train)
+    
+    # evaluate on the test data
+    test_err[f] <- sqrt(mean((predict(model, trips_per_day_test) - trips_per_day_test$num_trips)^2))
+  }
+  
+  # compute the average test error across folds
+  # and the standard error on this estimate
+  avg_test_err[k] <- mean(test_err)
+  se_test_err[k] <- sd(test_err) / sqrt(num_folds)
+}
 
 #######################Recency Frequency Tree###############################
 #reviews ~ recency frequency

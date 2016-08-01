@@ -1,3 +1,7 @@
+#this file compares all trees for people who were listed for all of 2015 
+#and those who were only listed for part of the year
+
+
 #install.packages("rpart")
 #install.packages("rpart.plot")
 #install.packages("ROCR")
@@ -28,6 +32,8 @@ train_all=all_2015[-indexes, ]
 
 test_part=part_2015[indexes, ]
 train_part=part_2015[-indexes, ]
+
+#all the trees which need to be run
 
 rf <- (has_reviews_2016 ~ host_listings_count + host_duration + 
          first_seen_month + last_seen_month + 
@@ -372,10 +378,13 @@ loc_p <- (has_reviews_2016 ~ max_price + mean_price + min_price +
             zipcode + market + #country + 
             is_location_exact)
 
+#create a list of all the trees
+
 trees <- c(amen, amen_rv_rf_p, amen_ver_loc_p_rv_rf, loc, loc_p, non_rf, price, 
            rf, rf_p, rf_rf, rf_words, rm_type, rv, rv_p, rv_rf_p_amen_ver, 
            rv_rf_p, ver, words, words_amen_ver_rf_rv_p)
 
+#run a loop over each of these trees and return the AUC value
 
 auc <- c()
 
@@ -404,8 +413,8 @@ for (i in trees) {
   # evaluate on the test data
   bestcp <- tree$cptable[which.min(tree$cptable[,"xerror"]), "CP"]
   tree_pruned <- prune(tree, cp = bestcp)
-  predicted <- predict(tree_pruned, test_part)
-  ROCR_predict <- prediction(predicted, test_part$has_reviews_2016)
+  predicted <- predict(tree_pruned, train_all)
+  ROCR_predict <- prediction(predicted, train_all$has_reviews_2016)
   roc.perf <- performance(ROCR_predict, measure = "tpr", x.measure = "fpr")
   auc_pred <- performance(ROCR_predict, measure = "auc")
   print(auc_pred@y.values)
