@@ -100,8 +100,6 @@ library(rpart)
 library(rpart.plot)
 library(ROCR)
 
-set.seed(123)
-
 # expands nums from abbreviated to actual numbers
 tot_count <- function(x, labs, digits, varlen)
 {
@@ -138,7 +136,7 @@ rev_train <- filter(jan_2015, !jan_2015$reviewer_id %in% rev_test$reviewer_id)
 
 rev_train_true <- filter(rev_train, weight_lgl == T)
 rev_train_false <- filter(rev_train, weight_lgl == F)
-rev_train_oversample <- rbind(head(rev_train_true, 5000), head(rev_train_false, 5000))
+rev_train_oversample <- rbind(head(rev_train_true, 6000), head(rev_train_false, 6000))
 
 # sampling with weights
 rev_test <- sample_n(before_2016, size=0.2*nrow(before_2016))
@@ -146,20 +144,9 @@ rev_train <- filter(before_2016, !before_2016$reviewer_id %in% rev_test$reviewer
 
 rev_train_true <- filter(rev_train, weight_lgl == T)
 rev_train_false <- filter(rev_train, weight_lgl == F)
-rev_train_oversample <- rbind(head(rev_train_true, 20000), head(rev_train_false, 20000))
-
-# sampling num_in_2015 > 0 cohort
-rev_test <- sample_n(num_more_than_one, size=0.2*nrow(num_more_than_one))
-rev_train <- filter(num_more_than_one, !num_more_than_one$reviewer_id %in% rev_test$reviewer_id)
-
-rev_train_true <- filter(rev_train, weight_lgl == T)
-rev_train_false <- filter(rev_train, weight_lgl == F)
-rev_train_oversample <- rbind(head(rev_train_true, 65000), head(rev_train_false, 65000))
+rev_train_oversample <- rbind(head(rev_train_true, 8000), head(rev_train_false, 8000))
 
 
-# trying to oversample using ROSE, doesn't work
-#rev_train_over <- ovun.sample(has_review_2016 ~ ., data = rev_train, method = "over",
-#                              N = nrow(rev_train), seed = 1)$data
 
 # modeling for num in 2016
 fit1 <- rpart(num_in_2016 ~ last_month_in_2015 + num_in_2015,
@@ -211,8 +198,7 @@ plot(roc.perf1)
 fit1a <- rpart(num_in_2016 ~ first_month + first_diff_2015 + last_month + 
                  last_diff_2015 + first_in_2015 + first_month_in_2015 + 
                  last_in_2015 + last_month_in_2015 + num_in_2015,
-              data = na.omit(rev_train), method = "anova")
-              # experimenting with filtering out NAs because of errors
+              data = rev_train_oversample, method = "anova")
 
 rpart.plot(fit1a)
 plot(fit1a)
@@ -231,7 +217,7 @@ prp(tree_pruned1a, faclen = 0, cex = 0.8, extra = 1)
 prp(tree_pruned1a, faclen = 0, cex = 0.8, node.fun=tot_count)
 
 #use predict to see the prediction
-sample_predict1a <- predict(tree_pruned1a, rev_train)
+sample_predict1a <- predict(tree_pruned1a, rev_test)
 
 ROCR1a <- prediction(sample_predict1a, rev_test$num_in_2015) # error
 # error rev_test is shorter than rev_train
@@ -273,10 +259,6 @@ text(tree_pruned2, cex = 0.8, use.n = TRUE, xpd = TRUE)
 
 prp(tree_pruned2, faclen = 0, cex = 0.8, extra = 1)
 
-tot_count <- function(x, labs, digits, varlen) {
-  paste(labs, "\n\nn =", x$frame$n)
-}
-
 prp(tree_pruned2, faclen = 0, cex = 0.8, node.fun=tot_count)
 
 #use predict to see the prediction
@@ -292,128 +274,65 @@ plot(roc.perf2)
 
 # using all features
 fit3 <- rpart(has_review_2016 ~ 
-                word_stay +
-                word_na +
-                word_great +
-                word_place +
-                word_host + word_house +
-                word_clean + word_nice +
-                word_home +
-                word_comfortable + word_location + word_room + word_apartment +
-                word_time + word_recommend +
-                word_perfect + word_beautiful +
-                word_made + word_area + word_easy + word_wonderful +
-                word_experience + word_enjoy + word_neighborhood + word_bed +
-                word_love + word_back + word_good + word_close + word_quiet +
-                word_welcome + word_need + word_walk + word_feel + word_helpful +
-                word_friendly + word_space + word_restaurant +
-                word_lovely +
-                word_night + word_amazing + word_beach + word_kitchen + word_highly +
-                word_lot + word_super + word_felt + word_make + word_day +
-                word_check + word_bathroom + word_airbnb + word_arrive + word_family +
-                word_convenient + word_cozy + word_visit + word_view +
-                word_accommodating + word_downtown + word_trip + word_walking +
-                word_coffee + word_didn + word_provided + word_located +
-                word_spacious + word_quick + word_arrival +
-                word_street +
-                word_question + word_breakfast + word_town + word_warm +
-                word_private + word_city + word_excellent + word_la + word_parking +
-                word_shop + word_gave + word_short + word_people + word_awesome +
-                word_distance + word_de + word_guest + word_fantastic + word_bedroom +
-                word_work + word_weekend + word_morning + word_park + word_extremely +
-                word_left + word_kind + word_safe + word_minutes + word_long +
-                word_list +
-                first_month + first_diff_2015 + last_month + 
-                last_diff_2015 + first_in_2015 + first_month_in_2015 + 
-                last_in_2015 + last_month_in_2015 + num_in_2015 +
-                all_time_as_of_2015,
-              data = rev_train, control = rpart.control(cp = 0.005))
+                fs_is_superhost_2015 +
+                fs_mean_price +
+                fs_host_listings_count +
+                fs_host_since +
+                fs_first_review_month_2015 +
+                fs_min_price +
+                fs_max_price +
+                fs_room_type +
+                fs_is_multilisting +
+                ls_is_superhost_2015 +
+                ls_mean_price +
+                ls_host_listings_count +
+                ls_host_since +
+                ls_first_review_month_2015 +
+                ls_min_price +
+                ls_max_price +
+                ls_room_type +
+                ls_first_review_month_2015
+                # first_month + first_diff_2015 + last_month +
+                # last_diff_2015 + first_in_2015 + first_month_in_2015 +
+                # last_in_2015 + last_month_in_2015 + num_in_2015 + all_time_as_of_2015 +
+                # word_stay +
+                # word_na +
+                # word_great +
+                # word_place +
+                # word_host + word_house +
+                # word_clean + word_nice +
+                # word_home +
+                # word_comfortable + word_location + word_room + word_apartment +
+                # word_time + word_recommend +
+                # word_perfect + word_beautiful +
+                # word_made + word_area + word_easy + word_wonderful +
+                # word_experience + word_enjoy + word_neighborhood + word_bed +
+                # word_love + word_back + word_good + word_close + word_quiet +
+                # word_welcome + word_need + word_walk + word_feel + word_helpful +
+                # word_friendly + word_space + word_restaurant +
+                # word_lovely +
+                # word_night + word_amazing + word_beach + word_kitchen + word_highly +
+                # word_lot + word_super + word_felt + word_make + word_day +
+                # word_check + word_bathroom + word_airbnb + word_arrive + word_family +
+                # word_convenient + word_cozy + word_visit + word_view +
+                # word_accommodating + word_downtown + word_trip + word_walking +
+                # word_coffee + word_didn + word_provided + word_located +
+                # word_spacious + word_quick + word_arrival +
+                # word_street +
+                # word_question + word_breakfast + word_town + word_warm +
+                # word_private + word_city + word_excellent + word_la + word_parking +
+                # word_shop + word_gave + word_short + word_people + word_awesome +
+                # word_distance + word_de + word_guest + word_fantastic + word_bedroom +
+                # word_work + word_weekend + word_morning + word_park + word_extremely +
+                # word_left + word_kind + word_safe + word_minutes + word_long +
+                # word_list
+              ,
+              data = rev_train_oversample, control = rpart.control(cp = 0.005))
 
 plot(fit3)
 text(fit3)
 rpart.plot(fit3)
 printcp(fit3)
-### with oversampling
-# Regression tree:
-#   rpart(formula = has_review_2016 ~ word_stay + word_na + word_great + 
-#           word_place + word_host + word_house + word_clean + word_nice + 
-#           word_home + word_comfortable + word_location + word_room + 
-#           word_apartment + word_time + word_recommend + word_perfect + 
-#           word_beautiful + word_made + word_area + word_easy + word_wonderful + 
-#           word_experience + word_enjoy + word_neighborhood + word_bed + 
-#           word_love + word_back + word_good + word_close + word_quiet + 
-#           word_welcome + word_need + word_walk + word_feel + word_helpful + 
-#           word_friendly + word_space + word_restaurant + word_lovely + 
-#           word_night + word_amazing + word_beach + word_kitchen + word_highly + 
-#           word_lot + word_super + word_felt + word_make + word_day + 
-#           word_check + word_bathroom + word_airbnb + word_arrive + 
-#           word_family + word_convenient + word_cozy + word_visit + 
-#           word_view + word_accommodating + word_downtown + word_trip + 
-#           word_walking + word_coffee + word_didn + word_provided + 
-#           word_located + word_spacious + word_quick + word_arrival + 
-#           word_street + word_question + word_breakfast + word_town + 
-#           word_warm + word_private + word_city + word_excellent + word_la + 
-#           word_parking + word_shop + word_gave + word_short + word_people + 
-#           word_awesome + word_distance + word_de + word_guest + word_fantastic + 
-#           word_bedroom + word_work + word_weekend + word_morning + 
-#           word_park + word_extremely + word_left + word_kind + word_safe + 
-#           word_minutes + word_long + word_list + first_month + first_diff_2015 + 
-#           last_month + last_diff_2015 + first_in_2015 + first_month_in_2015 + 
-#           last_in_2015 + last_month_in_2015 + num_in_2015 + all_time_as_of_2015, 
-#         data = rev_train_oversample, control = rpart.control(cp = 0.005))
-# 
-# Variables actually used in tree construction:
-#   [1] last_month  num_in_2015
-# 
-# Root node error: 2500/10000 = 0.25
-# 
-# n= 10000 
-# 
-# CP nsplit rel error  xerror       xstd
-# 1 0.0551962      0   1.00000 1.00017 0.00005928
-# 2 0.0056475      1   0.94480 0.94525 0.00453877
-# 3 0.0050000      2   0.93916 0.94219 0.00462391
-
-### without oversampling
-# Regression tree:
-#   rpart(formula = has_review_2016 ~ word_stay + word_na + word_great + 
-#           word_place + word_host + word_house + word_clean + word_nice + 
-#           word_home + word_comfortable + word_location + word_room + 
-#           word_apartment + word_time + word_recommend + word_perfect + 
-#           word_beautiful + word_made + word_area + word_easy + word_wonderful + 
-#           word_experience + word_enjoy + word_neighborhood + word_bed + 
-#           word_love + word_back + word_good + word_close + word_quiet + 
-#           word_welcome + word_need + word_walk + word_feel + word_helpful + 
-#           word_friendly + word_space + word_restaurant + word_lovely + 
-#           word_night + word_amazing + word_beach + word_kitchen + word_highly + 
-#           word_lot + word_super + word_felt + word_make + word_day + 
-#           word_check + word_bathroom + word_airbnb + word_arrive + 
-#           word_family + word_convenient + word_cozy + word_visit + 
-#           word_view + word_accommodating + word_downtown + word_trip + 
-#           word_walking + word_coffee + word_didn + word_provided + 
-#           word_located + word_spacious + word_quick + word_arrival + 
-#           word_street + word_question + word_breakfast + word_town + 
-#           word_warm + word_private + word_city + word_excellent + word_la + 
-#           word_parking + word_shop + word_gave + word_short + word_people + 
-#           word_awesome + word_distance + word_de + word_guest + word_fantastic + 
-#           word_bedroom + word_work + word_weekend + word_morning + 
-#           word_park + word_extremely + word_left + word_kind + word_safe + 
-#           word_minutes + word_long + word_list + first_month + first_diff_2015 + 
-#           last_month + last_diff_2015 + first_in_2015 + first_month_in_2015 + 
-#           last_in_2015 + last_month_in_2015 + num_in_2015 + all_time_as_of_2015, 
-#         data = rev_train, control = rpart.control(cp = 0.005))
-# 
-# Variables actually used in tree construction:
-#   [1] last_month  num_in_2015
-# 
-# Root node error: 5318.5/43607 = 0.12196
-# 
-# n= 43607 
-# 
-# CP nsplit rel error  xerror      xstd
-# 1 0.0483177      0   1.00000 1.00005 0.0098135
-# 2 0.0091505      1   0.95168 0.95446 0.0092791
-# 3 0.0050000      2   0.94253 0.94535 0.0092910
 
 bestcp3 <- fit3$cptable[which.min(fit3$cptable[,"xerror"]), "CP"]
 
@@ -435,50 +354,6 @@ sample_predict3 <- predict(tree_pruned3, rev_test)
 ROCR3 <- prediction(sample_predict3, rev_test$has_review_2016) 
 roc.perf3 = performance(ROCR3, measure = "tpr", x.measure = "fpr")
 performance(ROCR3, measure = "auc")
-### with oversampling
-# An object of class "performance"
-# Slot "x.name":
-#   [1] "None"
-# 
-# Slot "y.name":
-#   [1] "Area under the ROC curve"
-# 
-# Slot "alpha.name":
-#   [1] "none"
-# 
-# Slot "x.values":
-#   list()
-# 
-# Slot "y.values":
-#   [[1]]
-# [1] 0.6391852
-# 
-# 
-# Slot "alpha.values":
-#   list()
-
-### without oversampling
-# An object of class "performance"
-# Slot "x.name":
-#   [1] "None"
-# 
-# Slot "y.name":
-#   [1] "Area under the ROC curve"
-# 
-# Slot "alpha.name":
-#   [1] "none"
-# 
-# Slot "x.values":
-#   list()
-# 
-# Slot "y.values":
-#   [[1]]
-# [1] 0.6321759
-# 
-# 
-# Slot "alpha.values":
-#   list()
-##### Conclusion: oversampling improves AUC by .007
 
 plot(roc.perf3)
 
@@ -550,6 +425,8 @@ plot(roc.perf4)
 
 
 ################################################################################
+# adding in features for first and last stay
+
 features <- read_csv("../raw_data/review_listing_features.csv")
 
 before_2016 <- inner_join(before_2016, features, by = "reviewer_id")
@@ -561,12 +438,19 @@ fit5 <- rpart(has_review_2016 ~
                 fs_mean_price +
                 fs_host_listings_count +
                 fs_host_since +
-                fs_first_review_month_2015 +
+                fs_first_review_month_2015 + 
+                fs_min_price +
+                fs_max_price +
+                fs_room_type +
+                fs_is_multilisting + 
                 ls_is_superhost_2015 + 
                 ls_mean_price +
                 ls_host_listings_count +
                 ls_host_since +
                 ls_first_review_month_2015 +
+                ls_min_price +
+                ls_max_price +
+                ls_room_type +
                 last_month_in_2015 + num_in_2015 +
                 word_great,
               data = rev_train_oversample, control = rpart.control(cp = 0.001, maxdepth = 5))
@@ -600,6 +484,10 @@ sample_predict5 <- predict(tree_pruned5, rev_test)
 ROCR5 <- prediction(sample_predict5, rev_test$has_review_2016) 
 roc.perf5 = performance(ROCR5, measure = "tpr", x.measure = "fpr")
 performance(ROCR5, measure = "auc")
+# Slot "y.values":
+#   [[1]]
+# [1] 0.6730168
+
 plot(roc.perf5)
 
 
@@ -615,61 +503,87 @@ model <- glm(has_review_2016 ~
              data = rev_train, family = "binomial")
 summary(model)
 
-
+################################################################################
 ####### num_in_2015 > 1
-num_more_than_one <- filter(before_2016, num_in_2015 > 1)
+#num_more_than_one <- filter(before_2016, num_in_2015 > 1)
 
-# resample
+#write_csv(num_more_than_one, "num_more_than_one.csv")
 
+num_more_than_one <- read_csv("num_more_than_one.csv")
+
+# sampling num_in_2015 > 0 cohort
+rev_test <- sample_n(num_more_than_one, size=0.2*nrow(num_more_than_one))
+rev_train <- filter(num_more_than_one, !num_more_than_one$reviewer_id %in% rev_test$reviewer_id)
+
+rev_train <- mutate(rev_train, set = as.factor(sample(1:5,nrow(rev_train),replace=TRUE)))
+
+# oversampling
+rev_train_true <- filter(rev_train, weight_lgl == T)
+rev_train_false <- filter(rev_train, weight_lgl == F)
+rev_train_oversample <- rbind(head(rev_train_true, 8500), head(rev_train_false, 8500))
+  
 fit6 <- rpart(has_review_2016 ~ 
                 fs_is_superhost_2015 +
                 fs_mean_price +
                 fs_host_listings_count +
                 fs_host_since +
                 fs_first_review_month_2015 +
-                ls_is_superhost_2015 + 
+                fs_min_price +
+                fs_max_price +
+                fs_room_type +
+                fs_is_multilisting +
+                ls_is_superhost_2015 +
                 ls_mean_price +
                 ls_host_listings_count +
                 ls_host_since +
                 ls_first_review_month_2015 +
-                last_month_in_2015 + num_in_2015 +
-                word_great,
-              data = rev_train_oversample, control = rpart.control(cp = 0.001, maxdepth = 5))
+                ls_min_price +
+                ls_max_price +
+                ls_room_type +
+                ls_first_review_month_2015 +
+                first_month + first_diff_2015 + last_month +
+                last_diff_2015 + first_in_2015 + first_month_in_2015 +
+                last_in_2015 + last_month_in_2015 + num_in_2015 + all_time_as_of_2015 +
+                word_stay +
+                word_na +
+                word_great +
+                word_place +
+                word_host + word_house +
+                word_clean + word_nice +
+                word_home +
+                word_comfortable + word_location + word_room + word_apartment +
+                word_time + word_recommend +
+                word_perfect + word_beautiful +
+                word_made + word_area + word_easy + word_wonderful +
+                word_experience + word_enjoy + word_neighborhood + word_bed +
+                word_love + word_back + word_good + word_close + word_quiet +
+                word_welcome + word_need + word_walk + word_feel + word_helpful +
+                word_friendly + word_space + word_restaurant +
+                word_lovely +
+                word_night + word_amazing + word_beach + word_kitchen + word_highly +
+                word_lot + word_super + word_felt + word_make + word_day +
+                word_check + word_bathroom + word_airbnb + word_arrive + word_family +
+                word_convenient + word_cozy + word_visit + word_view +
+                word_accommodating + word_downtown + word_trip + word_walking +
+                word_coffee + word_didn + word_provided + word_located +
+                word_spacious + word_quick + word_arrival +
+                word_street +
+                word_question + word_breakfast + word_town + word_warm +
+                word_private + word_city + word_excellent + word_la + word_parking +
+                word_shop + word_gave + word_short + word_people + word_awesome +
+                word_distance + word_de + word_guest + word_fantastic + word_bedroom +
+                word_work + word_weekend + word_morning + word_park + word_extremely +
+                word_left + word_kind + word_safe + word_minutes + word_long +
+                word_list
+              ,
+              data = rev_train, control = rpart.control(cp = 0.001, maxdepth = 5))
 
 plot(fit6)
 text(fit6)
 rpart.plot(fit6)
 printcp(fit6)
-# Regression tree:
-#   rpart(formula = has_review_2016 ~ fs_is_superhost_2015 + fs_mean_price + 
-#           fs_host_listings_count + fs_host_since + fs_first_review_month_2015 + 
-#           ls_is_superhost_2015 + ls_mean_price + ls_host_listings_count + 
-#           ls_host_since + ls_first_review_month_2015 + last_month_in_2015 + 
-#           num_in_2015 + word_great, data = rev_train_oversample, control = rpart.control(cp = 0.001, 
-#                                                                                          maxdepth = 5))
-# 
-# Variables actually used in tree construction:
-#   [1] last_month_in_2015 ls_mean_price      num_in_2015        word_great        
-# 
-# Root node error: 6884.5/40440 = 0.17024
-# 
-# n= 40440 
-# 
-# CP nsplit rel error  xerror      xstd
-# 1  0.0244049      0   1.00000 1.00005 0.0068078
-# 2  0.0087747      1   0.97560 0.97569 0.0067348
-# 3  0.0081768      2   0.96682 0.96929 0.0066960
-# 4  0.0033712      3   0.95864 0.95885 0.0067185
-# 5  0.0029248      4   0.95527 0.95642 0.0067264
-# 6  0.0025383      5   0.95235 0.95400 0.0067049
-# 7  0.0015695      6   0.94981 0.95030 0.0066918
-# 8  0.0015372      7   0.94824 0.94978 0.0067105
-# 9  0.0014557      8   0.94670 0.94930 0.0067122
-# 10 0.0013804      9   0.94525 0.94820 0.0067089
-# 11 0.0010000     10   0.94387 0.94645 0.0066993
 
 prp(fit6, faclen = 0, cex = 0.8, node.fun=tot_count)
-
 
 bestcp6 <- fit6$cptable[which.min(fit6$cptable[,"xerror"]), "CP"]
 
@@ -692,6 +606,91 @@ ROCR6 <- prediction(sample_predict6, rev_test$has_review_2016)
 roc.perf6 = performance(ROCR6, measure = "tpr", x.measure = "fpr")
 performance(ROCR6, measure = "auc")
 plot(roc.perf6)
-# Slot "y.values":
-#   [[1]]
-# [1] 0.6341948
+
+
+
+# cross validation
+performance <- list()
+
+for(i in seq(1,5)) {
+  
+  rev_train_set <- filter(rev_train, set == i)
+  
+  fit6 <- rpart(has_review_2016 ~ 
+                  fs_is_superhost_2015 +
+                  fs_mean_price +
+                  fs_host_listings_count +
+                  fs_host_since +
+                  fs_first_review_month_2015 +
+                  ls_is_superhost_2015 + 
+                  ls_mean_price +
+                  ls_host_listings_count +
+                  ls_host_since +
+                  ls_first_review_month_2015 +
+                  first_month + first_diff_2015 + last_month + 
+                  last_diff_2015 + first_in_2015 + first_month_in_2015 + 
+                  last_in_2015 + last_month_in_2015 + num_in_2015 +
+                  word_stay +
+                  word_na +
+                  word_great +
+                  word_place +
+                  word_host + word_house +
+                  word_clean + word_nice +
+                  word_home +
+                  word_comfortable + word_location + word_room + word_apartment +
+                  word_time + word_recommend +
+                  word_perfect + word_beautiful +
+                  word_made + word_area + word_easy + word_wonderful +
+                  word_experience + word_enjoy + word_neighborhood + word_bed +
+                  word_love + word_back + word_good + word_close + word_quiet +
+                  word_welcome + word_need + word_walk + word_feel + word_helpful +
+                  word_friendly + word_space + word_restaurant +
+                  word_lovely +
+                  word_night + word_amazing + word_beach + word_kitchen + word_highly +
+                  word_lot + word_super + word_felt + word_make + word_day +
+                  word_check + word_bathroom + word_airbnb + word_arrive + word_family +
+                  word_convenient + word_cozy + word_visit + word_view +
+                  word_accommodating + word_downtown + word_trip + word_walking +
+                  word_coffee + word_didn + word_provided + word_located +
+                  word_spacious + word_quick + word_arrival +
+                  word_street +
+                  word_question + word_breakfast + word_town + word_warm +
+                  word_private + word_city + word_excellent + word_la + word_parking +
+                  word_shop + word_gave + word_short + word_people + word_awesome +
+                  word_distance + word_de + word_guest + word_fantastic + word_bedroom +
+                  word_work + word_weekend + word_morning + word_park + word_extremely +
+                  word_left + word_kind + word_safe + word_minutes + word_long +
+                  word_list,
+                data = rev_train_set, control = rpart.control(cp = 0.001, maxdepth = 5))
+  
+  #plot(fit6)
+  #text(fit6)
+  #rpart.plot(fit6)
+  printcp(fit6)
+  
+  #prp(fit6, faclen = 0, cex = 0.8, node.fun=tot_count)
+  
+  bestcp6 <- fit6$cptable[which.min(fit6$cptable[,"xerror"]), "CP"]
+  
+  #prune tree using best cp
+  tree_pruned6 <- prune(fit6, cp = bestcp6)
+  
+  #plot(tree_pruned6, uniform = TRUE)
+  #text(tree_pruned6, cex = 0.8, use.n = TRUE, xpd = TRUE)
+  
+  #prp(tree_pruned6, faclen = 0, cex = 0.8, extra = 1)
+  
+  #prp(tree_pruned6, faclen = 0, cex = 0.8, node.fun=tot_count)
+  
+  #rpart.plot(tree_pruned6)
+  
+  #use predict to see the prediction
+  sample_predict6 <- predict(tree_pruned6, rev_test)
+  
+  ROCR6 <- prediction(sample_predict6, rev_test$has_review_2016) 
+  roc.perf6 = performance(ROCR6, measure = "tpr", x.measure = "fpr")
+  performance(ROCR6, measure = "auc")
+  
+  print("set performance")
+  performance[i] = roc.perf6@y.values
+}
