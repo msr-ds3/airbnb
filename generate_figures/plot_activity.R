@@ -4,7 +4,8 @@ library(ggplot2)
 
 
 #load the derived data sets
-load("listings_history.RData")
+listings_history <- read_csv("../raw_data/listing_history.csv")
+
 reviews <- read_csv("../raw_data/us_rev_data.csv", na='\\N')
 
 #create histogram of number of occurances of each listing in 2015
@@ -21,15 +22,18 @@ ggplot(data = listings_history, aes(x = total_occ_2015)) +
 
 #create the same histogram only with first seen month 2015-01
 listings_history_january <- listings_history %>% 
-  filter(first_seen_month == "2015-01")
+  filter(host_since >= "2015-01-01" & host_since <= "2015-01-31") %>% 
+  filter(purged == FALSE) %>% group_by(host_id.x) %>% 
+  filter(row_number() == sample(1:row_number(), 1)) 
 ggplot(data = listings_history_january, aes(x = total_occ_2015)) + 
   geom_histogram() +
-  xlab("Total Occurences in 2015") +
+  xlab("Total Occurrences in 2015") +
   ylab("Frequency") +
   ggtitle(
-    "Frequency of Occurences by Listings for 2015 for January 2015 Cohort") +
+    "Frequency of Occurrences by Listings for 2015 for January 2015 Cohort") +
+  scale_x_continuous(breaks=0:9) + 
   ggsave(file = 
-           "../airbnb/figures/hist_occurances_by_listing_2015_jan2015cohort.pdf")
+           "../airbnb/figures/occurrences_by_listing_2015_jancohort.pdf")
 
 
 #create histogram of number of reviews of each reviewer in 2015

@@ -1,21 +1,25 @@
 #to find the true january cohort (the people who started in January 2015 and
 #were seen there for the very first time ever)
 
+#load listingshistory
+
 listings_history <- read_csv("../../raw_data/listing_history.csv")
+
+#filter for those that started in january 2015 and weren't purged
+
 january_start <- listings_history %>% filter(host_since >= "2015-01-01" & 
                                                host_since <= "2015-01-31") %>%
   filter(purged == "FALSE")
-
-
+#filter again so we have one random listing per host
 january <- january_start %>% group_by(host_id.x) %>% 
-  filter(row_number() == sample(1:row_number(), 1)) `
+  filter(row_number() == sample(1:row_number(), 1)) 
 
+#change the january data frame so that zipcode is a character
+january$zipcode <- as.character(january$zipcode)
 
-#deal with all listings first
+#create an index to build the test and train
 indexes <- sample(1:nrow(january), 
                   size=0.2*nrow(january))
-
-
 
 #apply the indexes to listings history to generate test and train
 test=january[indexes, ]
