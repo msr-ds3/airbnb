@@ -33,7 +33,7 @@ ggplot(data = listings_history_january, aes(x = total_occ_2015)) +
     "Frequency of Occurrences by Listings for 2015 for January 2015 Cohort") +
   scale_x_continuous(breaks=0:9) + 
   ggsave(file = 
-           "../airbnb/figures/occurrences_by_listing_2015_jancohort.pdf")
+           "../figures/occurrences_by_listing_2015_jancohort.png", width = 7)
 
 
 #create histogram of number of reviews of each reviewer in 2015
