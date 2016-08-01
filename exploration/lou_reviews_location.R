@@ -1,6 +1,6 @@
 reviews <- read_csv("../../raw_data/us_rev_data.csv")
-
-View(reviews_skinny_test)
+colnames(reviews)
+xView(reviews_skinny_test)
 
 reviews_skinny_test <- reviews_skinny[1:1000,] #test on 1,000 rows
 
@@ -35,16 +35,24 @@ find_unique_locations <- function(skinny_df){
 }
 
 total_locations = sort(find_unique_locations(reviews_skinny)) # unique location of all reviewers, sorted alphabetically
-length(total_locations)
+
 write.table(total_locations, 'unique_locations_grand.tsv', sep='\t') #list of unique locations for all 2015-16
 
-
+cleaned_total_location <- total_locations %>% tolower() %>% unique()
+length(total_locations) #10651
+length(cleaned_total_location) #10351 (-300)
 
 # 3. After running through python script, returns T/F table of locations
 # python lou_reviewer_locations_python.py > table_locations_grand.csv
 locations_table_grand = read.csv('table_locations_grand.csv')
-View(locations_table_grand)
 
 locations_table_grand <- locations_table_grand 
 View(locations_table_grand) #takes the last instance of the listing locations
 
+colnames(all_listings)
+
+summary(all_listings$number_of_reviews)
+View(all_listings)
+
+summary(listings_history$num_reviews_in_2015)
+summary(listings_history$num_reviews_in_2016)
