@@ -4,6 +4,7 @@ library(rpart.plot)
 library(ROCR)
 library(dplyr)
 library(lubridate)
+library(rms)
 
 # expands nums from abbreviated to actual numbers
 tot_count <- function(x, labs, digits, varlen)
@@ -32,6 +33,9 @@ jan_2015 <- filter(before_2016, first_month >= as.Date("2015-01-01") &
 # num_in_2015 > 1
 num_more_than_one <- filter(before_2016, num_in_2015 > 1)
 
+#save(reviewer_data, before_2016, jan_2015, num_more_than_one, file = "datasets.RData")
+load("datasets.RData")
+
 ################################################################################
 ## Sampling
 ################################################################################
@@ -42,6 +46,7 @@ train <- filter(reviewer_data, !reviewer_data$reviewer_id %in% test$reviewer_id)
 
 train_true <- filter(train, weight_lgl == T)
 train_false <- filter(train, weight_lgl == F)
+train_false <- sample_n(train_false, nrow(train_false))
 train_oversample <- rbind(head(train_true, nrow(train_true)),
                           head(train_false, nrow(train_true)))
 
@@ -49,32 +54,36 @@ train_oversample <- rbind(head(train_true, nrow(train_true)),
 jan_test <- sample_n(jan_2015, size=0.2*nrow(jan_2015))
 jan_train <- filter(jan_2015, !jan_2015$reviewer_id %in% jan_test$reviewer_id)
 
-# !!! weights to 0 
-# jan_train_true <- filter(jan_train, weight_lgl == T)
-# jan_train_false <- filter(jan_train, weight_lgl == F)
-# jan_train_oversample <- rbind(head(jan_train_true, nrow(jan_train_true)),
-#                               head(jan_train_false, nrow(jan_train_true)))
+jan_train_true <- filter(jan_train, weight_lgl == T)
+jan_train_false <- filter(jan_train, weight_lgl == F)
+jan_train_false <- sample_n(jan_train_false, nrow(jan_train_false))
+jan_train_oversample <- rbind(head(jan_train_true, nrow(jan_train_true)),
+                              head(jan_train_false, nrow(jan_train_true)))
 
 # before 2016
 before_test <- sample_n(before_2016, size=0.2*nrow(before_2016))
 before_train <- filter(before_2016, !before_2016$reviewer_id %in% before_test$reviewer_id)
 
-# !!! weights to 0 
-# before_train_true <- filter(before_train, weight_lgl == T)
-# before_train_false <- filter(before_train, weight_lgl == F)
-# before_train_oversample <- rbind(head(before_train_true, nrow(before_train_true)),
-#                                  head(before_train_false, nrow(before_train_true)))
+before_train_true <- filter(before_train, weight_lgl == T)
+before_train_false <- filter(before_train, weight_lgl == F)
+before_train_false <- sample_n(before_train_false, nrow(before_train_false))
+before_train_oversample <- rbind(head(before_train_true, nrow(before_train_true)),
+                                 head(before_train_false, nrow(before_train_true)))
 
 # num_in_2015 > 1
 num_test <- sample_n(num_more_than_one, size=0.2*nrow(num_more_than_one))
 num_train <- filter(num_more_than_one, !num_more_than_one$reviewer_id %in% num_test$reviewer_id)
 
-# !!! weights to 0 
-# num_train_true <- filter(num_train, weight_lgl == T)
-# num_train_false <- filter(num_train, weight_lgl == F)
-# num_train_oversample <- rbind(head(num_train_true, nrow(num_train_true)),
-#                               head(num_train_false, nrow(num_train_true)))
+num_train_true <- filter(num_train, weight_lgl == T)
+num_train_false <- filter(num_train, weight_lgl == F) 
+num_train_false <- sample_n(num_train_false, nrow(num_train_false))
+num_train_oversample <- rbind(head(num_train_true, nrow(num_train_true)),
+                              head(num_train_false, nrow(num_train_true)))
 
+# save(test, train, train_oversample, jan_test, jan_train, jan_train_oversample,
+#      before_test, before_train, before_train_oversample, num_test, num_train,
+#      num_train_oversample, file = "test_train.RData")
+load("test_train.RData")
 ################################################################################
 ## Decision Trees
 ################################################################################
@@ -94,6 +103,7 @@ get_fit_rf <- function(train_df, test_df) {
                   num_in_2015 +
                   all_time_as_of_2015,
                 data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
+  
   printcp(fit_rf)
   bestcp_rf <- fit_rf$cptable[which.min(fit_rf$cptable[,"xerror"]), "CP"]
   
@@ -176,7 +186,7 @@ get_fit_words <- function(train_df, test_df) {
   # calculate AUC
   ROCR_words <- prediction(sample_predict_words, test_df$has_review_2016) 
   roc.perf_words = performance(ROCR_words, measure = "tpr", x.measure = "fpr")
-  performance(ROCR_words, measure = "auc")
+  print(performance(ROCR_words, measure = "auc"))
   plot(roc.perf_words)
 }
 
@@ -198,22 +208,30 @@ get_fit_words(num_train_oversample, num_test)
 # function: pass train and test dataframes
 get_fit_ls <- function(train_df, test_df) {
   fit_ls <- rpart(has_review_2016 ~ host_since + host_response_time + 
-                      host_response_rate + host_acceptance_rate + host_is_superhost +               
+                      #host_response_rate +
+                      #host_acceptance_rate + 
+                      host_is_superhost +               
                       host_listings_count + host_total_listings_count + host_has_profile_pic +            
-                      host_identity_verified + city + state +                           
-                      zipcode + country_code + country +                         
-                      property_type + room_type + accommodates +                    
+                      host_identity_verified + 
+                      #city + state +                           
+                      #zipcode + country_code + 
+                      #country +                         
+                      #property_type + 
+                      room_type + accommodates +                    
                       bathrooms + bedrooms + beds +                            
-                      bed_type + weekly_price + monthly_price +                   
-                      security_deposit + cleaning_fee + guests_included +                 
-                      extra_people + minimum_nights + maximum_nights +                  
+                      bed_type + 
+                      #weekly_price + monthly_price +                   
+                      #security_deposit + cleaning_fee + 
+                      guests_included +                 
+                      #extra_people + 
+                      minimum_nights + maximum_nights +                  
                       number_of_reviews + first_review + last_review +                     
                       review_scores_rating + review_scores_accuracy + 
                       review_scores_cleanliness +       
                       review_scores_checkin + review_scores_communication + review_scores_location +          
                       review_scores_value + instant_bookable + cancellation_policy +             
                       require_guest_profile_picture + require_guest_phone_verification + region_id +                       
-                      region_name + region_parent_id + region_parent_name +              
+                      #region_name + region_parent_id + region_parent_name +              
                       calculated_host_listings_count + reviews_per_month,
                   data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
   printcp(fit_ls)
@@ -232,7 +250,7 @@ get_fit_ls <- function(train_df, test_df) {
   # calculate AUC
   ROCR_ls <- prediction(sample_predict_ls, test_df$has_review_2016) 
   roc.perf_ls = performance(ROCR_ls, measure = "tpr", x.measure = "fpr")
-  performance(ROCR_ls, measure = "auc")
+  print(performance(ROCR_ls, measure = "auc"))
   plot(roc.perf_ls)
 }
 
@@ -306,7 +324,7 @@ get_fit_rf_words <- function(train_df, test_df) {
   # calculate AUC
   ROCR_rf_words <- prediction(sample_predict_rf_words, test_df$has_review_2016) 
   roc.perf_rf_words = performance(ROCR_rf_words, measure = "tpr", x.measure = "fpr")
-  performance(ROCR_rf_words, measure = "auc")
+  print(performance(ROCR_rf_words, measure = "auc"))
   plot(roc.perf_rf_words)
 }
 
@@ -337,24 +355,32 @@ get_fit_rf_ls <- function(train_df, test_df) {
                           last_month_in_2015 +
                           num_in_2015 +
                           all_time_as_of_2015 +
-                          host_since + host_response_time + 
-                          host_response_rate + host_acceptance_rate + host_is_superhost +               
-                          host_listings_count + host_total_listings_count + host_has_profile_pic +            
-                          host_identity_verified + city + state +                           
-                          zipcode + country_code + country +                         
-                          property_type + room_type + accommodates +                    
-                          bathrooms + bedrooms + beds +                            
-                          bed_type + weekly_price + monthly_price +                   
-                          security_deposit + cleaning_fee + guests_included +                 
-                          extra_people + minimum_nights + maximum_nights +                  
-                          number_of_reviews + first_review + last_review +                     
-                          review_scores_rating + review_scores_accuracy + 
-                          review_scores_cleanliness +       
-                          review_scores_checkin + review_scores_communication + review_scores_location +          
-                          review_scores_value + instant_bookable + cancellation_policy +             
-                          require_guest_profile_picture + require_guest_phone_verification + region_id +                       
-                          region_name + region_parent_id + region_parent_name +              
-                          calculated_host_listings_count + reviews_per_month,
+                         host_since + host_response_time + 
+                         #host_response_rate +
+                         #host_acceptance_rate + 
+                         host_is_superhost +               
+                         host_listings_count + host_total_listings_count + host_has_profile_pic +            
+                         host_identity_verified + 
+                         #city + state +                           
+                         #zipcode + country_code + 
+                         #country +                         
+                         #property_type + 
+                         room_type + accommodates +                    
+                         bathrooms + bedrooms + beds +                            
+                         bed_type + 
+                         #weekly_price + monthly_price +                   
+                         #security_deposit + cleaning_fee + 
+                         guests_included +                 
+                         #extra_people + 
+                         minimum_nights + maximum_nights +                  
+                         number_of_reviews + first_review + last_review +                     
+                         review_scores_rating + review_scores_accuracy + 
+                         review_scores_cleanliness +       
+                         review_scores_checkin + review_scores_communication + review_scores_location +          
+                         review_scores_value + instant_bookable + cancellation_policy +             
+                         require_guest_profile_picture + require_guest_phone_verification + region_id +                       
+                         #region_name + region_parent_id + region_parent_name +              
+                         calculated_host_listings_count + reviews_per_month,
                         data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
   printcp(fit_rf_ls)
   bestcp_rf_ls <- fit_rf_ls$cptable[which.min(fit_rf_ls$cptable[,"xerror"]), "CP"]
@@ -372,7 +398,7 @@ get_fit_rf_ls <- function(train_df, test_df) {
   # calculate AUC
   ROCR_rf_ls <- prediction(sample_predict_rf_ls, test_df$has_review_2016) 
   roc.perf_rf_ls = performance(ROCR_rf_ls, measure = "tpr", x.measure = "fpr")
-  performance(ROCR_rf_ls, measure = "auc")
+  print(performance(ROCR_rf_ls, measure = "auc"))
   plot(roc.perf_rf_ls)
 }
 
@@ -419,22 +445,30 @@ get_fit_words_ls <- function(train_df, test_df) {
                        word_kind + word_safe + word_minutes + word_long +
                        word_list +
                        host_since + host_response_time + 
-                       host_response_rate + host_acceptance_rate + host_is_superhost +               
+                       #host_response_rate +
+                       #host_acceptance_rate + 
+                       host_is_superhost +               
                        host_listings_count + host_total_listings_count + host_has_profile_pic +            
-                       host_identity_verified + city + state +                           
-                       zipcode + country_code + country +                         
-                       property_type + room_type + accommodates +                    
+                       host_identity_verified + 
+                       #city + state +                           
+                       #zipcode + country_code + 
+                       #country +                         
+                       #property_type + 
+                       room_type + accommodates +                    
                        bathrooms + bedrooms + beds +                            
-                       bed_type + weekly_price + monthly_price +                   
-                       security_deposit + cleaning_fee + guests_included +                 
-                       extra_people + minimum_nights + maximum_nights +                  
+                       bed_type + 
+                       #weekly_price + monthly_price +                   
+                       #security_deposit + cleaning_fee + 
+                       guests_included +                 
+                       #extra_people + 
+                       minimum_nights + maximum_nights +                  
                        number_of_reviews + first_review + last_review +                     
                        review_scores_rating + review_scores_accuracy + 
                        review_scores_cleanliness +       
                        review_scores_checkin + review_scores_communication + review_scores_location +          
                        review_scores_value + instant_bookable + cancellation_policy +             
                        require_guest_profile_picture + require_guest_phone_verification + region_id +                       
-                       region_name + region_parent_id + region_parent_name +              
+                       #region_name + region_parent_id + region_parent_name +              
                        calculated_host_listings_count + reviews_per_month,
                      data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
   printcp(fit_words_ls)
@@ -453,7 +487,7 @@ get_fit_words_ls <- function(train_df, test_df) {
   # calculate AUC
   ROCR_words_ls <- prediction(sample_predict_words_ls, test_df$has_review_2016) 
   roc.perf_words_ls = performance(ROCR_words_ls, measure = "tpr", x.measure = "fpr")
-  performance(ROCR_words_ls, measure = "auc")
+  print(performance(ROCR_words_ls, measure = "auc"))
   plot(roc.perf_words_ls)
 }
 
@@ -509,24 +543,32 @@ get_fit_all <- function(train_df, test_df) {
                           word_morning + word_park + word_extremely + word_left +
                           word_kind + word_safe + word_minutes + word_long +
                           word_list +
-                          host_since + host_response_time + 
-                          host_response_rate + host_acceptance_rate + host_is_superhost +               
-                          host_listings_count + host_total_listings_count + host_has_profile_pic +            
-                          host_identity_verified + city + state +                           
-                          zipcode + country_code + country +                         
-                          property_type + room_type + accommodates +                    
-                          bathrooms + bedrooms + beds +                            
-                          bed_type + weekly_price + monthly_price +                   
-                          security_deposit + cleaning_fee + guests_included +                 
-                          extra_people + minimum_nights + maximum_nights +                  
-                          number_of_reviews + first_review + last_review +                     
-                          review_scores_rating + review_scores_accuracy + 
-                          review_scores_cleanliness +       
-                          review_scores_checkin + review_scores_communication + review_scores_location +          
-                          review_scores_value + instant_bookable + cancellation_policy +             
-                          require_guest_profile_picture + require_guest_phone_verification + region_id +                       
-                          region_name + region_parent_id + region_parent_name +              
-                          calculated_host_listings_count + reviews_per_month,
+                         host_since + host_response_time + 
+                         #host_response_rate +
+                         #host_acceptance_rate + 
+                         host_is_superhost +               
+                         host_listings_count + host_total_listings_count + host_has_profile_pic +            
+                         host_identity_verified + 
+                         #city + state +                           
+                         #zipcode + country_code + 
+                         #country +                         
+                         #property_type + 
+                         room_type + accommodates +                    
+                         bathrooms + bedrooms + beds +                            
+                         bed_type + 
+                         #weekly_price + monthly_price +                   
+                         #security_deposit + cleaning_fee + 
+                         guests_included +                 
+                         #extra_people + 
+                         minimum_nights + maximum_nights +                  
+                         number_of_reviews + first_review + last_review +                     
+                         review_scores_rating + review_scores_accuracy + 
+                         review_scores_cleanliness +       
+                         review_scores_checkin + review_scores_communication + review_scores_location +          
+                         review_scores_value + instant_bookable + cancellation_policy +             
+                         require_guest_profile_picture + require_guest_phone_verification + region_id +                       
+                         #region_name + region_parent_id + region_parent_name +              
+                         calculated_host_listings_count + reviews_per_month,
                         data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
   printcp(fit_all)
   bestcp_all <- fit_all$cptable[which.min(fit_all$cptable[,"xerror"]), "CP"]
@@ -544,7 +586,7 @@ get_fit_all <- function(train_df, test_df) {
   # calculate AUC
   ROCR_all <- prediction(sample_predict_all, test_df$has_review_2016) 
   roc.perf_all = performance(ROCR_all, measure = "tpr", x.measure = "fpr")
-  performance(ROCR_all, measure = "auc")
+  print(performance(ROCR_all, measure = "auc"))
   plot(roc.perf_all)
 }
 
@@ -557,3 +599,12 @@ get_fit_all(before_train_oversample, before_test)
 
 get_fit_all(num_train, num_test)
 get_fit_all(num_train_oversample, num_test)
+
+################################################################################
+## Review Plot (doesn't really belong here but oh well)
+################################################################################
+
+ggplot(before_2016, aes(x = all_time_as_of_2015, y = number_of_reviews,
+                        color = host_is_superhost)) +
+  geom_point()
+# plotting all_time_as_of_2015 again number_of_reviews (of the last stay listing)
