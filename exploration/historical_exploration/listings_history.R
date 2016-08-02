@@ -88,10 +88,12 @@ rm(column_names, missing)
 
 all_listings <- rbind(listings1501, listings1503, listings1504, listings1505, listings1506, 
                       listings1508, listings1509, listings1510, listings1511, listings1512,
-                      listings1601, listings1602, listings1604, listings1605, listings1606, listings1607 ) 
+                      listings1601, listings1602, listings1604, listings1605, listings1606, listings1607) 
 #run this for 2015#
+all_listings_2015 <- rbind(listings1501, listings1503, listings1504, listings1505, listings1506, 
+                      listings1508, listings1509, listings1510, listings1511, listings1512)
 
-#run this for 2016#
+#run this for 2016
 all_listings_2016 <- rbind(listings1601, listings1602, listings1604, listings1605, listings1606, listings1607) 
 
 rm(listings1501, listings1503, listings1504, listings1505, listings1506, 
