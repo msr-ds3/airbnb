@@ -31,7 +31,7 @@ ggplot(data = listings_history_january, aes(x = total_occ_2015)) +
   ylab("Frequency") +
   ggtitle(
     "Frequency of Occurrences by Listings for 2015 for January 2015 Cohort") +
-  scale_x_continuous(breaks=0:9) + 
+  scale_x_continuous(breaks=0:10) + 
   ggsave(file = 
            "../figures/occurrences_by_listing_2015_jancohort.png", width = 7)
 
