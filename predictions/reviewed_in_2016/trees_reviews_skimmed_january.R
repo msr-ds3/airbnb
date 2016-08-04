@@ -933,9 +933,7 @@ interplay <- rpart(has_reviews_2016 ~ fr_num_reviews + fr_first_review_date +
                      num_repeat_visits + 
                      num_repeat_visitors + max_num_repeat_visits + 
                      percent_repeat_visitors + 
-                     percent_repeat_visitors_laplace + host_response_rate + 
-                     host_acceptance_rate + host_has_profile_pic + 
-                     host_identity_verified, data = train, 
+                     percent_repeat_visitors_laplace , data = train, 
                    control = rpart.control(cp = 0.001) )
 bestcp_interplay <- interplay$cptable[which.min(interplay$cptable[,"xerror"]), "CP"]
 tree_pruned_interplay <- prune(interplay, cp = bestcp_interplay)
@@ -992,8 +990,36 @@ control = rpart.control(cp = 0.001) )
 bestcp_best<- best$cptable[which.min(best$cptable[,"xerror"]), "CP"]
 tree_pruned_best <- prune(best, cp = bestcp_best)
 
+
+
+best2 <- rpart(has_reviews_2016 ~  TV + Internet + Wireless.Internet +
+                Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
+                Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
+                Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
+                Pets.live.on.this.property + Dog.s. + First.Aid.Kit + 
+                Buzzer.Wireless.Intercom + Washer + Dryer + Pets.Allowed + 
+                Gym + Safety.Card + Fire.Extinguisher + Wheelchair.Accessible +
+                Cat.s. + Indoor.Fireplace + Suitable.for.Events + Doorman + 
+                Hot.Tub + Elevator.in.Building + Pool + Smoking.Allowed + 
+                Other.pet.s. + Washer...Dryer + Lock.on.Bedroom.Door + 
+                X24.Hour.Check.in + Hangers + Hair.Dryer + Iron + 
+                Laptop.Friendly.Workspace + 
+                translation.missing..en.hosting_amenity_49 + 
+                translation.missing..en.hosting_amenity_50 + 
+                host_listings_count + host_duration + 
+                first_seen_month + last_seen_month + 
+                listing_recency_2015_weeks + scrap_duration + 
+                total_occ_2015 + review_recency_2015_weeks + 
+                is_superhost_2015 + is_superhost_count_2015 + 
+                first_review_year + last_review_year +
+                num_as_of_2015 + num_reviews_in_2015 + has_reviews_2015 +
+                first_review_month_2015 + last_review_month_2015 + 
+                last_rating , data = train, 
+              control = rpart.control(cp = 0.001) )
+bestcp_best2<- best2$cptable[which.min(best2$cptable[,"xerror"]), "CP"]
+tree_pruned_best2 <- prune(best2, cp = bestcp_best2)
 jpeg(filename = "../../figures/best_features_reviews2016_jancohort.jpeg")
-rpart.plot(tree_pruned_best, left = FALSE)
+rpart.plot(tree_pruned_best2, left = FALSE)
 dev.off()
 
 predicted_best <- predict(tree_pruned_best, test)
@@ -1038,3 +1064,26 @@ title(main = "ROC for Reviewed 2016 Using Best Features for the
       January Cohort", 
       sub = "AUC = 0.9054")
 dev.off()
+
+
+amen <- rpart(has_reviews_2016 ~  TV + Internet + Wireless.Internet +
+           Air.Conditioning + Kitchen + Heating + Family.Kid.Friendly + 
+           Smoke.Detector + Carbon.Monoxide.Detector + Essentials +
+           Shampoo + Cable.TV + Free.Parking.on.Premises + Breakfast +
+           Pets.live.on.this.property + Dog.s. + First.Aid.Kit + 
+           Buzzer.Wireless.Intercom + Washer + Dryer + Pets.Allowed + 
+           Gym + Safety.Card + Fire.Extinguisher + Wheelchair.Accessible +
+           Cat.s. + Indoor.Fireplace + Suitable.for.Events + Doorman + 
+           Hot.Tub + Elevator.in.Building + Pool + Smoking.Allowed + 
+           Other.pet.s. + Washer...Dryer + Lock.on.Bedroom.Door + 
+           X24.Hour.Check.in + Hangers + Hair.Dryer + Iron + 
+           Laptop.Friendly.Workspace + 
+           translation.missing..en.hosting_amenity_49 + 
+           translation.missing..en.hosting_amenity_50, data = train, 
+         control = rpart.control(cp = 0.001) )
+bestcp_best<- amen$cptable[which.min(amen$cptable[,"xerror"]), "CP"]
+tree_pruned_best <- prune(amen, cp = bestcp_best)
+
+jpeg(filename = "../../figures/rf_reviews2016_jancohort.jpeg")
+rpart.plot(tree_pruned_best, left = FALSE)
+dev.off())
