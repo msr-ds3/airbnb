@@ -4,7 +4,6 @@ library(rpart.plot)
 library(ROCR)
 library(dplyr)
 library(lubridate)
-library(rms)
 
 # expands nums from abbreviated to actual numbers
 tot_count <- function(x, labs, digits, varlen)
@@ -33,22 +32,19 @@ jan_2015 <- filter(before_2016, first_month >= as.Date("2015-01-01") &
 # num_in_2015 > 1
 num_more_than_one <- filter(before_2016, num_in_2015 > 1)
 
-#save(reviewer_data, before_2016, jan_2015, num_more_than_one, file = "datasets.RData")
+# num_in_2015 > 5
+more_than_five <- filter(before_2016, num_in_2015 > 5)
+
+# num_in_2015 == 1 and first_month in 2015
+only_one <- filter(before_2016, num_in_2015 == 1 & all_time_as_of_2015 == 1)
+
+# save(reviewer_data, before_2016, jan_2015, num_more_than_one, more_than_five, 
+#      only_one, file = "datasets.RData")
 load("datasets.RData")
 
 ################################################################################
 ## Sampling
 ################################################################################
-
-# all (can only run recency frequency and words, lacks other features)
-test <- sample_n(reviewer_data, size=0.2*nrow(reviewer_data))
-train <- filter(reviewer_data, !reviewer_data$reviewer_id %in% test$reviewer_id)
-
-train_true <- filter(train, weight_lgl == T)
-train_false <- filter(train, weight_lgl == F)
-train_false <- sample_n(train_false, nrow(train_false))
-train_oversample <- rbind(head(train_true, nrow(train_true)),
-                          head(train_false, nrow(train_true)))
 
 # january cohort
 jan_test <- sample_n(jan_2015, size=0.2*nrow(jan_2015))
@@ -80,9 +76,30 @@ num_train_false <- sample_n(num_train_false, nrow(num_train_false))
 num_train_oversample <- rbind(head(num_train_true, nrow(num_train_true)),
                               head(num_train_false, nrow(num_train_true)))
 
+# num_in_2015 > 5
+five_test <- sample_n(more_than_five, size=0.2*nrow(more_than_five))
+five_train <- filter(more_than_five, !more_than_five$reviewer_id %in% five_test$reviewer_id)
+
+five_train_true <- filter(five_train, weight_lgl == T)
+five_train_false <- filter(five_train, weight_lgl == F) 
+five_train_false <- sample_n(five_train_false, nrow(five_train_false))
+five_train_oversample <- rbind(head(five_train_true, nrow(five_train_true)),
+                              head(five_train_false, nrow(five_train_true)))
+
+# num_in_2015 == 1 and first_month in 2015
+one_test <- sample_n(only_one, size=0.2*nrow(only_one))
+one_train <- filter(only_one, !only_one$reviewer_id %in% one_test$reviewer_id)
+
+one_train_true <- filter(one_train, weight_lgl == T)
+one_train_false <- filter(one_train, weight_lgl == F) 
+one_train_false <- sample_n(one_train_false, nrow(one_train_false))
+one_train_oversample <- rbind(head(one_train_true, nrow(one_train_true)),
+                               head(one_train_false, nrow(one_train_true)))
+
 # save(test, train, train_oversample, jan_test, jan_train, jan_train_oversample,
 #      before_test, before_train, before_train_oversample, num_test, num_train,
-#      num_train_oversample, file = "test_train.RData")
+#      num_train_oversample, five_test, five_train, five_train_oversample, one_test,
+#      one_train, one_train_oversample, file = "test_train.RData")
 load("test_train.RData")
 ################################################################################
 ## Decision Trees
@@ -92,6 +109,18 @@ load("test_train.RData")
 
 # function: pass train and test dataframes
 get_fit_rf <- function(train_df, test_df) {
+  
+  train_df$first_month <- train_df$first_month-as.Date("2008/08/01")
+  train_df$last_month <- train_df$last_month-as.Date("2008/08/01")
+  train_df$first_in_2015 <- train_df$first_in_2015-as.Date("2015/01/01")
+  train_df$last_in_2015 <- train_df$last_in_2015-as.Date("2015/12/31")
+  
+  test_df$first_month <- test_df$first_month-as.Date("2008/08/01")
+  test_df$last_month <- test_df$last_month-as.Date("2008/08/01")
+  test_df$first_in_2015 <- test_df$first_in_2015-as.Date("2015/01/01")
+  test_df$last_in_2015 <- test_df$last_in_2015-as.Date("2015/12/31")
+  
+  
   fit_rf <- rpart(has_review_2016 ~ first_month +
                   first_diff_2015 +
                   last_month +
@@ -112,7 +141,7 @@ get_fit_rf <- function(train_df, test_df) {
   prp(tree_pruned_rf, faclen = 0, cex = 0.8, node.fun=tot_count)
   
   # plot
-  rpart.plot(tree_pruned_rf)
+  rpart.plot(tree_pruned_rf, left = FALSE)
   
   # use predict to see the prediction on test set
   sample_predict_rf <- predict(tree_pruned_rf, test_df)
@@ -125,17 +154,20 @@ get_fit_rf <- function(train_df, test_df) {
 }
 
 # calls
-get_fit_rf(train, test)
-get_fit_rf(train_oversample, test)
-
 get_fit_rf(jan_train, jan_test)
-get_fit_rf(jan_train_oversample, jan_test)
+get_fit_rf(jan_train_oversample, jan_test)  # use
 
 get_fit_rf(before_train, before_test)
 get_fit_rf(before_train_oversample, before_test)
 
 get_fit_rf(num_train, num_test)
 get_fit_rf(num_train_oversample, num_test)
+
+get_fit_rf(five_train, five_test)
+get_fit_rf(five_train_oversample, five_test)
+
+get_fit_rf(one_train, one_test)
+get_fit_rf(one_train_oversample, one_test)
 
 ##### Words
 
@@ -178,7 +210,7 @@ get_fit_words <- function(train_df, test_df) {
   prp(tree_pruned_words, faclen = 0, cex = 0.8, node.fun=tot_count)
   
   # plot
-  rpart.plot(tree_pruned_words)
+  rpart.plot(tree_pruned_words, left = FALSE)
   
   # use predict to see the prediction on test set
   sample_predict_words <- predict(tree_pruned_words, test_df)
@@ -191,9 +223,6 @@ get_fit_words <- function(train_df, test_df) {
 }
 
 # calls
-get_fit_words(train, test)
-get_fit_words(train_oversample, test)
-
 get_fit_words(jan_train, jan_test)
 get_fit_words(jan_train_oversample, jan_test)
 
@@ -203,6 +232,12 @@ get_fit_words(before_train_oversample, before_test)
 get_fit_words(num_train, num_test)
 get_fit_words(num_train_oversample, num_test)
 
+get_fit_words(five_train, five_test)
+get_fit_words(five_train_oversample, five_test)
+
+get_fit_words(one_train, one_test)
+get_fit_words(one_train_oversample, one_test)
+
 ##### Last Seen
 
 # function: pass train and test dataframes
@@ -211,7 +246,8 @@ get_fit_ls <- function(train_df, test_df) {
                       #host_response_rate +
                       #host_acceptance_rate + 
                       host_is_superhost +               
-                      host_listings_count + host_total_listings_count + host_has_profile_pic +            
+                      host_listings_count + host_total_listings_count + 
+                      host_has_profile_pic +            
                       host_identity_verified + 
                       #city + state +                           
                       #zipcode + country_code + 
@@ -228,9 +264,11 @@ get_fit_ls <- function(train_df, test_df) {
                       number_of_reviews + first_review + last_review +                     
                       review_scores_rating + review_scores_accuracy + 
                       review_scores_cleanliness +       
-                      review_scores_checkin + review_scores_communication + review_scores_location +          
+                      review_scores_checkin + review_scores_communication + 
+                      review_scores_location +          
                       review_scores_value + instant_bookable + cancellation_policy +             
-                      require_guest_profile_picture + require_guest_phone_verification + region_id +                       
+                      require_guest_profile_picture + 
+                      require_guest_phone_verification + region_id +                       
                       #region_name + region_parent_id + region_parent_name +              
                       calculated_host_listings_count + reviews_per_month,
                   data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
@@ -242,7 +280,7 @@ get_fit_ls <- function(train_df, test_df) {
   prp(tree_pruned_ls, faclen = 0, cex = 0.8, node.fun=tot_count)
   
   # plot
-  rpart.plot(tree_pruned_ls)
+  rpart.plot(tree_pruned_ls, left = FALSE)
   
   # use predict to see the prediction on test set
   sample_predict_ls <- predict(tree_pruned_ls, test_df)
@@ -264,6 +302,12 @@ get_fit_ls(before_train_oversample, before_test)
 
 get_fit_ls(num_train, num_test)
 get_fit_ls(num_train_oversample, num_test)
+
+get_fit_ls(five_train, five_test)
+get_fit_ls(five_train_oversample, five_test)
+
+get_fit_ls(one_train, one_test)
+get_fit_ls(one_train_oversample, one_test)
 
 ##### Recency Frequency / Words
 
@@ -329,9 +373,6 @@ get_fit_rf_words <- function(train_df, test_df) {
 }
 
 # calls
-get_fit_rf_words(train, test)
-get_fit_rf_words(train_oversample, test)
-
 get_fit_rf_words(jan_train, jan_test)
 get_fit_rf_words(jan_train_oversample, jan_test)
 
@@ -341,13 +382,30 @@ get_fit_rf_words(before_train_oversample, before_test)
 get_fit_rf_words(num_train, num_test)
 get_fit_rf_words(num_train_oversample, num_test)
 
+get_fit_rf_words(five_train, five_test)
+get_fit_rf_words(five_train_oversample, five_test)
+
+get_fit_rf_words(one_train, one_test)
+get_fit_rf_words(one_train_oversample, one_test)
+
 ##### Recency Frequency / Last Seen
 
 # function: pass train and test dataframes
 get_fit_rf_ls <- function(train_df, test_df) {
-  fit_rf_ls <- rpart(has_review_2016 ~ first_month +
+  
+  train_df$first_month <- train_df$first_month-as.Date("2008/08/01")
+  train_df$last_month <- train_df$last_month-as.Date("2008/08/01")
+  train_df$first_in_2015 <- train_df$first_in_2015-as.Date("2015/01/01")
+  train_df$last_in_2015 <- train_df$last_in_2015-as.Date("2015/12/31")
+  
+  test_df$first_month <- test_df$first_month-as.Date("2008/08/01")
+  test_df$last_month <- test_df$last_month-as.Date("2008/08/01")
+  test_df$first_in_2015 <- test_df$first_in_2015-as.Date("2015/01/01")
+  test_df$last_in_2015 <- test_df$last_in_2015-as.Date("2015/12/31")
+  
+  fit_rf_ls <- rpart(has_review_2016 ~ #first_month +
                           first_diff_2015 +
-                          last_month +
+                          #last_month +
                           last_diff_2015 +
                           first_in_2015 +
                           first_month_in_2015 +
@@ -359,7 +417,8 @@ get_fit_rf_ls <- function(train_df, test_df) {
                          #host_response_rate +
                          #host_acceptance_rate + 
                          host_is_superhost +               
-                         host_listings_count + host_total_listings_count + host_has_profile_pic +            
+                         host_listings_count + host_total_listings_count + 
+                         host_has_profile_pic +            
                          host_identity_verified + 
                          #city + state +                           
                          #zipcode + country_code + 
@@ -376,9 +435,12 @@ get_fit_rf_ls <- function(train_df, test_df) {
                          number_of_reviews + first_review + last_review +                     
                          review_scores_rating + review_scores_accuracy + 
                          review_scores_cleanliness +       
-                         review_scores_checkin + review_scores_communication + review_scores_location +          
+                         review_scores_checkin + review_scores_communication + 
+                         review_scores_location +          
                          review_scores_value + instant_bookable + cancellation_policy +             
-                         require_guest_profile_picture + require_guest_phone_verification + region_id +                       
+                         require_guest_profile_picture + 
+                         require_guest_phone_verification + 
+                         #region_id +                       
                          #region_name + region_parent_id + region_parent_name +              
                          calculated_host_listings_count + reviews_per_month,
                         data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
@@ -390,7 +452,7 @@ get_fit_rf_ls <- function(train_df, test_df) {
   prp(tree_pruned_rf_ls, faclen = 0, cex = 0.8, node.fun=tot_count)
   
   # plot
-  rpart.plot(tree_pruned_rf_ls)
+  rpart.plot(tree_pruned_rf_ls, left = FALSE)
   
   # use predict to see the prediction on test set
   sample_predict_rf_ls <- predict(tree_pruned_rf_ls, test_df)
@@ -411,6 +473,12 @@ get_fit_rf_ls(before_train_oversample, before_test)
 
 get_fit_rf_ls(num_train, num_test)
 get_fit_rf_ls(num_train_oversample, num_test)
+
+get_fit_rf_ls(five_train, five_test)
+get_fit_rf_ls(five_train_oversample, five_test)
+
+get_fit_rf_ls(one_train, one_test)
+get_fit_rf_ls(one_train_oversample, one_test)
 
 ##### Words / Last Seen
 
@@ -448,7 +516,8 @@ get_fit_words_ls <- function(train_df, test_df) {
                        #host_response_rate +
                        #host_acceptance_rate + 
                        host_is_superhost +               
-                       host_listings_count + host_total_listings_count + host_has_profile_pic +            
+                       host_listings_count + host_total_listings_count + 
+                       host_has_profile_pic +            
                        host_identity_verified + 
                        #city + state +                           
                        #zipcode + country_code + 
@@ -465,9 +534,11 @@ get_fit_words_ls <- function(train_df, test_df) {
                        number_of_reviews + first_review + last_review +                     
                        review_scores_rating + review_scores_accuracy + 
                        review_scores_cleanliness +       
-                       review_scores_checkin + review_scores_communication + review_scores_location +          
+                       review_scores_checkin + review_scores_communication + 
+                       review_scores_location +          
                        review_scores_value + instant_bookable + cancellation_policy +             
-                       require_guest_profile_picture + require_guest_phone_verification + region_id +                       
+                       require_guest_profile_picture + 
+                       require_guest_phone_verification + region_id +                       
                        #region_name + region_parent_id + region_parent_name +              
                        calculated_host_listings_count + reviews_per_month,
                      data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
@@ -501,13 +572,19 @@ get_fit_words_ls(before_train_oversample, before_test)
 get_fit_words_ls(num_train, num_test)
 get_fit_words_ls(num_train_oversample, num_test)
 
+get_fit_words_ls(five_train, five_test)
+get_fit_words_ls(five_train_oversample, five_test)
+
+get_fit_words_ls(one_train, one_test)
+get_fit_words_ls(one_train_oversample, one_test)
+
 ##### All
 
 # function: pass train and test dataframes
 get_fit_all <- function(train_df, test_df) {
-  fit_all <- rpart(has_review_2016 ~ first_month +
+  fit_all <- rpart(has_review_2016 ~ #first_month +
                           first_diff_2015 +
-                          last_month +
+                          #last_month +
                           last_diff_2015 +
                           first_in_2015 +
                           first_month_in_2015 +
@@ -547,7 +624,8 @@ get_fit_all <- function(train_df, test_df) {
                          #host_response_rate +
                          #host_acceptance_rate + 
                          host_is_superhost +               
-                         host_listings_count + host_total_listings_count + host_has_profile_pic +            
+                         host_listings_count + host_total_listings_count + 
+                         host_has_profile_pic +            
                          host_identity_verified + 
                          #city + state +                           
                          #zipcode + country_code + 
@@ -564,9 +642,11 @@ get_fit_all <- function(train_df, test_df) {
                          number_of_reviews + first_review + last_review +                     
                          review_scores_rating + review_scores_accuracy + 
                          review_scores_cleanliness +       
-                         review_scores_checkin + review_scores_communication + review_scores_location +          
+                         review_scores_checkin + review_scores_communication + 
+                         review_scores_location +          
                          review_scores_value + instant_bookable + cancellation_policy +             
-                         require_guest_profile_picture + require_guest_phone_verification + region_id +                       
+                         require_guest_profile_picture + 
+                         require_guest_phone_verification + region_id +                       
                          #region_name + region_parent_id + region_parent_name +              
                          calculated_host_listings_count + reviews_per_month,
                         data = train_df, control = rpart.control(cp = 0.001, maxdepth = 5))
@@ -578,7 +658,7 @@ get_fit_all <- function(train_df, test_df) {
   prp(tree_pruned_all, faclen = 0, cex = 0.8, node.fun=tot_count)
   
   # plot
-  rpart.plot(tree_pruned_all)
+  rpart.plot(tree_pruned_all, left = FALSE)
   
   # use predict to see the prediction on test set
   sample_predict_all <- predict(tree_pruned_all, test_df)
@@ -600,11 +680,26 @@ get_fit_all(before_train_oversample, before_test)
 get_fit_all(num_train, num_test)
 get_fit_all(num_train_oversample, num_test)
 
+get_fit_all(five_train, five_test)
+get_fit_all(five_train_oversample, five_test)
+
+get_fit_all(one_train, one_test)
+get_fit_all(one_train_oversample, one_test)
+
 ################################################################################
 ## Review Plot (doesn't really belong here but oh well)
 ################################################################################
+library(ggplot2)
 
 ggplot(before_2016, aes(x = all_time_as_of_2015, y = number_of_reviews,
                         color = host_is_superhost)) +
   geom_point()
 # plotting all_time_as_of_2015 again number_of_reviews (of the last stay listing)
+
+# plotting frequency of reviews for 2015 in Jan 2015 cohort - looks bad
+ggplot(jan_2015, aes(x = num_in_2015)) +
+  geom_bar() +
+  ggtitle("Frequency of Occurrences by Reviews for 2015 in January 2015 Cohort") +
+  xlab("Number of reviews in 2015") +
+  ylab("Frequency") +
+  scale_x_continuous(limits = as.)
