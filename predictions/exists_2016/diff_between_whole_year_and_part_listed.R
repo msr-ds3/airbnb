@@ -1,3 +1,6 @@
+#compare the AUC for different trees for those listings up for the whole year
+#v those only listed for part of the year
+
 #install.packages("rpart")
 #install.packages("rpart.plot")
 #install.packages("ROCR")
